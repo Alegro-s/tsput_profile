@@ -13,6 +13,7 @@ class PortfolioProvider with ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadPortfolio() async {
+    await Future<void>.delayed(Duration.zero);
     _isLoading = true;
     _error = null;
     notifyListeners();

@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../../core/constants.dart';
 import '../../core/providers/student_provider.dart';
 
 class ProfileCard extends StatelessWidget {
-  final VoidCallback? onLogoutRequested;
+  final VoidCallback? onSettingsPressed;
+  final VoidCallback? onRefreshPressed;
 
-  const ProfileCard({Key? key, this.onLogoutRequested}) : super(key: key);
+  const ProfileCard({
+    super.key,
+    this.onSettingsPressed,
+    this.onRefreshPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,95 +22,77 @@ class ProfileCard extends StatelessWidget {
 
     if (student == null) {
       return Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
+          color: AppConstants.surfaceMuted,
+          borderRadius: BorderRadius.circular(AppConstants.cardRadius),
         ),
-        child: Center(
-          child: CircularProgressIndicator(),
+        child: const Center(
+          child: CircularProgressIndicator(color: AppConstants.terracotta),
         ),
       );
     }
 
     return Container(
-      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF3EC9C0),
-            Color(0xFF1F8A82),
-          ],
-        ),
+        color: AppConstants.blockBlack,
         borderRadius: BorderRadius.circular(20),
       ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
       child: Row(
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundColor: Colors.grey[300],
-            backgroundImage: student.avatarUrl != null
-                ? NetworkImage(student.avatarUrl!)
-                : null,
+            backgroundColor: AppConstants.blockBlackElevated,
+            backgroundImage:
+                student.avatarUrl != null ? NetworkImage(student.avatarUrl!) : null,
             child: student.avatarUrl == null
-                ? Icon(
-              Icons.person,
-              size: 36,
-              color: Colors.grey[600],
-            )
+                ? Icon(PhosphorIconsRegular.user, size: 32, color: AppConstants.onBlockSecondary)
                 : null,
           ),
-          SizedBox(width: 16),
-
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   student.fullName,
-                  style: TextStyle(
-                    color: Colors.white,
+                  style: const TextStyle(
+                    color: AppConstants.onBlock,
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '${student.group} | ${student.faculty}',
-                  style: TextStyle(
-                    color: Colors.grey[300],
+                  '${student.group} · ${student.faculty}',
+                  style: const TextStyle(
+                    color: AppConstants.onBlockSecondary,
                     fontSize: 14,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   'Курс ${student.course}',
-                  style: TextStyle(
-                    color: Colors.grey[300],
+                  style: const TextStyle(
+                    color: AppConstants.onBlockSecondary,
                     fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
-
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              if (onSettingsPressed != null)
+                IconButton(
+                  icon: Icon(PhosphorIconsRegular.gear, color: AppConstants.onBlock),
+                  onPressed: onSettingsPressed,
+                ),
               IconButton(
-                icon: Icon(Icons.settings_outlined, color: Colors.white),
-                onPressed: () {
-                  if (onLogoutRequested != null) {
-                    onLogoutRequested!();
-                  }
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.refresh_outlined, color: Colors.white),
-                onPressed: () {
-                  studentProvider.loadStudentData();
-                },
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: AppConstants.onBlock),
+                onPressed: onRefreshPressed ?? () => studentProvider.loadStudentData(),
               ),
             ],
           ),

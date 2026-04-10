@@ -15,6 +15,7 @@ class ScheduleProvider with ChangeNotifier {
   DateTime get selectedDate => _selectedDate;
 
   Future<void> loadSchedule() async {
+    await Future<void>.delayed(Duration.zero);
     _isLoading = true;
     _error = null;
     notifyListeners();

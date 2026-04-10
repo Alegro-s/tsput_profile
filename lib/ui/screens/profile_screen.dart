@@ -1,241 +1,275 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/providers/student_provider.dart';
-import '../../core/providers/auth_provider.dart';
-import '../auth/login_screen.dart';
-import '../widgets/profile_card.dart';
 
-class ProfileScreen extends StatelessWidget {
+import '../../core/constants.dart';
+import '../../core/providers/main_nav_provider.dart';
+import '../../core/providers/portfolio_provider.dart';
+import '../../core/providers/student_provider.dart';
+import '../../data/portfolio_pedagogy_sections.dart';
+import '../widgets/profile_card.dart';
+import '../widgets/sheet_handle.dart';
+
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final nav = context.watch<MainNavProvider>();
+    if (nav.shouldOpenPortfolioTab) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _tabController.animateTo(1);
+        context.read<MainNavProvider>().clearPortfolioTabRequest();
+      });
+    }
+
     final studentProvider = context.watch<StudentProvider>();
     final student = studentProvider.student;
 
     if (student == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Профиль')),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text('Профиль')),
+        body: const Center(child: CircularProgressIndicator(color: AppConstants.terracotta)),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppConstants.surfaceWhite,
       appBar: AppBar(
-        title: Text('Профиль'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () {
-              _showSettingsMenu(context);
-            },
+        title: const Text('Личный кабинет'),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppConstants.terracotta,
+          unselectedLabelColor: AppConstants.secondaryColor,
+          indicatorColor: AppConstants.terracotta,
+          indicatorWeight: 3,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          tabs: const [
+            Tab(text: 'Данные студента'),
+            Tab(text: 'Портфолио'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _StudentDataTab(
+            onRefresh: () => studentProvider.loadStudentData(),
           ),
+          const _PortfolioPedagogyTab(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+    );
+  }
+}
+
+class _StudentDataTab extends StatelessWidget {
+  const _StudentDataTab({required this.onRefresh});
+
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>().student!;
+    final info = student.additionalInfo;
+
+    final tiles = <(String, String)>[
+      ('ФИО', student.fullName),
+      ('Группа', student.group),
+      ('Институт', student.faculty),
+      ('Специальность', student.specialty),
+      ('Курс', '${student.course}'),
+      ('Email', student.email),
+      ('Телефон', student.phone),
+      ('Адрес', student.address),
+      if (info['recordBook'] != null) ('Зачётная книжка', info['recordBook'].toString()),
+      if (info['trainingLevel'] != null) ('Уровень подготовки', info['trainingLevel'].toString()),
+      if (info['profile'] != null) ('Профиль', info['profile'].toString()),
+      if (info['studentStatus'] != null) ('Статус', info['studentStatus'].toString()),
+      if (info['birthDate'] != null) ('Дата рождения', info['birthDate'].toString()),
+      (
+        'Поступление',
+        '${student.admissionDate.day.toString().padLeft(2, '0')}.${student.admissionDate.month.toString().padLeft(2, '0')}.${student.admissionDate.year}',
+      ),
+      (
+        'Выпуск',
+        '${student.graduationDate.day.toString().padLeft(2, '0')}.${student.graduationDate.month.toString().padLeft(2, '0')}.${student.graduationDate.year}',
+      ),
+      if (info['scholarship'] != null) ('Стипендия', '${info['scholarship']} ₽'),
+      if (info['dormitory'] != null) ('Общежитие', info['dormitory'].toString()),
+      if (info['averageGrade'] != null) ('Средний балл', info['averageGrade'].toString()),
+    ];
+
+    return RefreshIndicator(
+      color: AppConstants.terracotta,
+      onRefresh: () async => onRefresh(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Карточка профиля
             ProfileCard(
-              onLogoutRequested: () {
-                _showLogoutConfirmation(context);
+              onSettingsPressed: null,
+              onRefreshPressed: onRefresh,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Сведения подгружаются из 1С и отображаются как в веб-кабинете.',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppConstants.secondaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, c) {
+                final gap = 12.0;
+                final w = (c.maxWidth - gap) / 2;
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: [
+                    for (final t in tiles)
+                      SizedBox(
+                        width: w,
+                        child: _PedaFieldCard(label: t.$1, value: t.$2),
+                      ),
+                  ],
+                );
               },
             ),
-
-            SizedBox(height: 20),
-
-            // Основная информация
-            Text(
-              'Основная информация',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-
-            SizedBox(height: 16),
-
-            _buildInfoCard(
-              title: 'Специальность',
-              value: student.specialty,
-              icon: Icons.school_outlined,
-            ),
-
-            _buildInfoCard(
-              title: 'Дата поступления',
-              value: _formatDate(student.admissionDate),
-              icon: Icons.date_range_outlined,
-            ),
-
-            _buildInfoCard(
-              title: 'Дата выпуска',
-              value: _formatDate(student.graduationDate),
-              icon: Icons.school,
-            ),
-
-            SizedBox(height: 20),
-
-            // Контактная информация
-            Text(
-              'Контактная информация',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-
-            SizedBox(height: 16),
-
-            _buildInfoCard(
-              title: 'Email',
-              value: student.email,
-              icon: Icons.email_outlined,
-            ),
-
-            _buildInfoCard(
-              title: 'Телефон',
-              value: student.phone,
-              icon: Icons.phone_outlined,
-            ),
-
-            _buildInfoCard(
-              title: 'Адрес',
-              value: student.address,
-              icon: Icons.location_on_outlined,
-            ),
-            if (student.additionalInfo['city'] != null)
-              _buildInfoCard(
-                title: 'Город',
-                value: student.additionalInfo['city'].toString(),
-                icon: Icons.location_city_outlined,
-              ),
-            if (student.additionalInfo['timezone'] != null)
-              _buildInfoCard(
-                title: 'Часовой пояс',
-                value: student.additionalInfo['timezone'].toString(),
-                icon: Icons.schedule,
-              ),
-
-            SizedBox(height: 20),
-
-            // Дополнительная информация
-            Text(
-              'Дополнительная информация',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-
-            SizedBox(height: 16),
-
-            if (student.additionalInfo['birthDate'] != null)
-              _buildInfoCard(
-                title: 'Дата рождения',
-                value: student.additionalInfo['birthDate'].toString(),
-                icon: Icons.cake_outlined,
-              ),
-            if (student.additionalInfo['studentStatus'] != null)
-              _buildInfoCard(
-                title: 'Статус обучающегося',
-                value: student.additionalInfo['studentStatus'].toString(),
-                icon: Icons.verified_user_outlined,
-              ),
-            if (student.additionalInfo['trainingLevel'] != null)
-              _buildInfoCard(
-                title: 'Уровень подготовки',
-                value: student.additionalInfo['trainingLevel'].toString(),
-                icon: Icons.workspace_premium_outlined,
-              ),
-            if (student.additionalInfo['profile'] != null)
-              _buildInfoCard(
-                title: 'Профиль',
-                value: student.additionalInfo['profile'].toString(),
-                icon: Icons.account_tree_outlined,
-              ),
-            if (student.additionalInfo['recordBook'] != null)
-              _buildInfoCard(
-                title: 'Номер зачетной книжки',
-                value: student.additionalInfo['recordBook'].toString(),
-                icon: Icons.badge_outlined,
-              ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _buildAdditionalCard(
-                    title: 'Стипендия',
-                    value: '${student.additionalInfo['scholarship'] ?? 0} ₽',
-                    icon: Icons.monetization_on_outlined,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: _buildAdditionalCard(
-                    title: 'Общежитие',
-                    value: student.additionalInfo['dormitory'] ?? '-',
-                    icon: Icons.home_outlined,
-                  ),
-                ),
-              ],
-            ),
-
-            // Средний балл и экзамены
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildAdditionalCard(
-                    title: 'Средний балл',
-                    value: student.additionalInfo['averageGrade']?.toString() ?? '0.0',
-                    icon: Icons.bar_chart,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: _buildAdditionalCard(
-                    title: 'Экзаменов',
-                    value: student.additionalInfo['examsCount']?.toString() ?? '0',
-                    icon: Icons.assignment,
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
+class _PedaFieldCard extends StatelessWidget {
+  const _PedaFieldCard({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppConstants.surfaceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+        border: Border.all(color: AppConstants.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppConstants.secondaryColor,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppConstants.blockBlack,
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PortfolioPedagogyTab extends StatelessWidget {
+  const _PortfolioPedagogyTab();
+
+  void _openCategory(BuildContext context, String section, String item) {
+    final portfolio = context.read<PortfolioProvider>();
+    showModalBottomSheet<void>(
       context: context,
-      builder: (BuildContext context) {
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final bottom = MediaQuery.of(ctx).padding.bottom;
+        final matches = portfolio.items
+            .where(
+              (p) =>
+                  p.category.toLowerCase().contains(item.toLowerCase()) ||
+                  p.title.toLowerCase().contains(item.toLowerCase()),
+            )
+            .toList();
         return Container(
-          padding: EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: AppConstants.surfaceWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.sheetTopRadius)),
+          ),
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ListTile(
-                leading: Icon(Icons.logout, color: Colors.red),
-                title: Text(
-                  'Выйти',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context); // Закрыть меню
-                  _showLogoutConfirmation(context);
-                },
+              const SheetGrabHandle(),
+              Text(
+                item,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppConstants.blockBlack),
               ),
-              SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Отмена'),
+              Text(
+                section,
+                style: TextStyle(fontSize: 13, color: AppConstants.secondaryColor),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Заполнение и согласование документов выполняются в личном кабинете вуза (источник — 1С). После выдачи API раздел откроет форму или глубокую ссылку.',
+                style: TextStyle(fontSize: 14, height: 1.45, color: AppConstants.secondaryColor),
+              ),
+              if (matches.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Уже есть записи с сервера:',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                ...matches.map(
+                  (p) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(p.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text('${p.category} · ${p.status}', style: TextStyle(fontSize: 12, color: AppConstants.secondaryColor)),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Понятно'),
               ),
             ],
           ),
@@ -244,130 +278,104 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Подтверждение выхода'),
-          content: Text('Вы уверены, что хотите выйти из системы?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Отмена', style: TextStyle(color: Colors.grey)),
+  @override
+  Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>().student;
+
+    return RefreshIndicator(
+      color: AppConstants.terracotta,
+      onRefresh: () => context.read<PortfolioProvider>().loadPortfolio(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Моё портфолио',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppConstants.blockBlack,
+                  ),
             ),
-            TextButton(
-              onPressed: () => _logout(context),
-              child: Text('Выйти', style: TextStyle(color: Colors.red)),
+            const SizedBox(height: 6),
+            Text(
+              'Выберите раздел. Данные в приложении приходят из 1С; загрузка файлов — через кабинет на сайте до готовности API.',
+              style: TextStyle(fontSize: 13, height: 1.4, color: AppConstants.secondaryColor),
             ),
+            if (student != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppConstants.surfaceMuted,
+                  borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+                  border: Border.all(color: AppConstants.borderSubtle),
+                ),
+                child: Text(
+                  'Учебный план: ${student.group}. ${student.faculty}, ${student.specialty}',
+                  style: const TextStyle(fontSize: 13, height: 1.35, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+            const SizedBox(height: 20),
+            for (final row in PortfolioPedagogySections.rows) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  row.$1,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppConstants.blockBlack,
+                  ),
+                ),
+              ),
+              LayoutBuilder(
+                builder: (context, c) {
+                  const gap = 10.0;
+                  final w = (c.maxWidth - gap) / 2;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final item in row.$2)
+                        SizedBox(
+                          width: w,
+                          child: Material(
+                            color: AppConstants.surfaceWhite,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              onTap: () => _openCategory(context, row.$1, item),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppConstants.borderSubtle),
+                                ),
+                                child: Text(
+                                  item,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.25,
+                                    color: AppConstants.blockBlack,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+            ],
           ],
-        );
-      },
-    );
-  }
-
-  void _logout(BuildContext context) async {
-    // Закрываем диалог
-    Navigator.of(context).pop();
-
-    // Вызываем logout из AuthProvider
-    final authProvider = context.read<AuthProvider>();
-    await authProvider.logout();
-
-    // Очищаем данные студента
-    final studentProvider = context.read<StudentProvider>();
-    studentProvider.clearStudentData();
-
-    // Переходим на экран логина, очищая историю навигации
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-          (Route<dynamic> route) => false,
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
-
-  Widget _buildInfoCard({
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.black87, size: 24),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdditionalCard({
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.black87, size: 32),
-          SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

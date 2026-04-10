@@ -18,7 +18,7 @@ class AuthProvider extends ChangeNotifier {
   String? get userName => _userName;
 
   AuthProvider() {
-    _init();
+    Future.microtask(() => _init());
   }
 
   Future<bool> login(String login, String password, {bool rememberMe = true}) async {

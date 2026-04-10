@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import '../../core/constants.dart';
 import '../../core/providers/events_provider.dart';
 import '../../data/models/event.dart';
 
@@ -89,7 +89,7 @@ class _EventsScreenState extends State<EventsScreen>
               maxChildSize: 0.95,
               builder: (context, scrollController) => Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppConstants.surfaceWhite,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -208,7 +208,7 @@ class _EventsScreenState extends State<EventsScreen>
                                           children: [
                                             Expanded(
                                               child: Material(
-                                                color: Colors.white,
+                                                color: AppConstants.surfaceWhite,
                                                 borderRadius: BorderRadius.circular(12),
                                                 child: InkWell(
                                                   borderRadius: BorderRadius.circular(12),
@@ -223,11 +223,11 @@ class _EventsScreenState extends State<EventsScreen>
                                                           data: ThemeData.light().copyWith(
                                                             colorScheme: ColorScheme.light(
                                                               primary: Colors.black,
-                                                              onPrimary: Colors.white,
-                                                              surface: Colors.white,
+                                                              onPrimary: AppConstants.surfaceWhite,
+                                                              surface: AppConstants.surfaceWhite,
                                                               onSurface: Colors.black,
                                                             ),
-                                                            dialogBackgroundColor: Colors.white,
+                                                            dialogBackgroundColor: AppConstants.surfaceWhite,
                                                           ),
                                                           child: child!,
                                                         );
@@ -242,7 +242,7 @@ class _EventsScreenState extends State<EventsScreen>
                                                   child: Container(
                                                     padding: EdgeInsets.all(16),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white,
+                                                      color: AppConstants.surfaceWhite,
                                                       borderRadius: BorderRadius.circular(12),
                                                       border: Border.all(color: Colors.grey[300]!),
                                                     ),
@@ -273,7 +273,7 @@ class _EventsScreenState extends State<EventsScreen>
                                             SizedBox(width: 12),
                                             Expanded(
                                               child: Material(
-                                                color: Colors.white,
+                                                color: AppConstants.surfaceWhite,
                                                 borderRadius: BorderRadius.circular(12),
                                                 child: InkWell(
                                                   borderRadius: BorderRadius.circular(12),
@@ -286,11 +286,11 @@ class _EventsScreenState extends State<EventsScreen>
                                                           data: ThemeData.light().copyWith(
                                                             colorScheme: ColorScheme.light(
                                                               primary: Colors.black,
-                                                              onPrimary: Colors.white,
-                                                              surface: Colors.white,
+                                                              onPrimary: AppConstants.surfaceWhite,
+                                                              surface: AppConstants.surfaceWhite,
                                                               onSurface: Colors.black,
                                                             ),
-                                                            dialogBackgroundColor: Colors.white,
+                                                            dialogBackgroundColor: AppConstants.surfaceWhite,
                                                           ),
                                                           child: child!,
                                                         );
@@ -305,7 +305,7 @@ class _EventsScreenState extends State<EventsScreen>
                                                   child: Container(
                                                     padding: EdgeInsets.all(16),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white,
+                                                      color: AppConstants.surfaceWhite,
                                                       borderRadius: BorderRadius.circular(12),
                                                       border: Border.all(color: Colors.grey[300]!),
                                                     ),
@@ -381,7 +381,7 @@ class _EventsScreenState extends State<EventsScreen>
                                         Container(
                                           padding: EdgeInsets.all(16),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: AppConstants.surfaceWhite,
                                             borderRadius: BorderRadius.circular(12),
                                             border: Border.all(color: Colors.grey[300]!),
                                           ),
@@ -491,7 +491,7 @@ class _EventsScreenState extends State<EventsScreen>
                                     SnackBar(
                                       content: Row(
                                         children: [
-                                          Icon(Icons.check_circle, color: Colors.white),
+                                          Icon(Icons.check_circle, color: AppConstants.surfaceWhite),
                                           SizedBox(width: 8),
                                           Expanded(child: Text('Мероприятие успешно добавлено')),
                                         ],
@@ -525,7 +525,7 @@ class _EventsScreenState extends State<EventsScreen>
                                   child: Text(
                                     'ДОБАВИТЬ МЕРОПРИЯТИЕ',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: AppConstants.surfaceWhite,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 0.5,
@@ -580,7 +580,7 @@ class _EventsScreenState extends State<EventsScreen>
           labelStyle: TextStyle(color: Colors.grey[600]),
           prefixIcon: Icon(icon, color: Colors.grey[600]),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: AppConstants.surfaceWhite,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -613,7 +613,7 @@ class _EventsScreenState extends State<EventsScreen>
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppConstants.surfaceWhite,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -668,7 +668,7 @@ class _EventsScreenState extends State<EventsScreen>
                                 event.type,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white,
+                                  color: AppConstants.surfaceWhite,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -690,7 +690,7 @@ class _EventsScreenState extends State<EventsScreen>
                         child: Text(
                           '${event.points}',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppConstants.surfaceWhite,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -774,12 +774,12 @@ class _EventsScreenState extends State<EventsScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified, color: Colors.white, size: 14),
+                              Icon(Icons.verified, color: AppConstants.surfaceWhite, size: 14),
                               SizedBox(width: 6),
                               Text(
                                 'Сертификат',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppConstants.surfaceWhite,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -876,7 +876,7 @@ class _EventsScreenState extends State<EventsScreen>
               maxChildSize: 0.9,
               builder: (context, scrollController) => Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppConstants.surfaceWhite,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -930,7 +930,7 @@ class _EventsScreenState extends State<EventsScreen>
                                     child: Text(
                                       '${event.points} баллов',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: AppConstants.surfaceWhite,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                       ),
@@ -948,7 +948,7 @@ class _EventsScreenState extends State<EventsScreen>
                                 child: Text(
                                   event.type,
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppConstants.surfaceWhite,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -1059,7 +1059,7 @@ class _EventsScreenState extends State<EventsScreen>
                                           SnackBar(
                                             content: Row(
                                               children: [
-                                                Icon(Icons.check_circle, color: Colors.white),
+                                                Icon(Icons.check_circle, color: AppConstants.surfaceWhite),
                                                 SizedBox(width: 8),
                                                 Expanded(
                                                   child: Text('Вы зарегистрированы на мероприятие'),
@@ -1078,7 +1078,7 @@ class _EventsScreenState extends State<EventsScreen>
                                         child: Text(
                                           'ЗАРЕГИСТРИРОВАТЬСЯ',
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppConstants.surfaceWhite,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                             letterSpacing: 0.5,
@@ -1109,7 +1109,7 @@ class _EventsScreenState extends State<EventsScreen>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.open_in_browser, color: Colors.white),
+            Icon(Icons.open_in_browser, color: AppConstants.surfaceWhite),
             SizedBox(width: 8),
             Text('Данная функция будет внедренна позже'),
           ],
@@ -1169,7 +1169,7 @@ class _EventsScreenState extends State<EventsScreen>
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppConstants.surfaceWhite,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -1266,7 +1266,7 @@ class _EventsScreenState extends State<EventsScreen>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.edit, color: Colors.white),
+            Icon(Icons.edit, color: AppConstants.surfaceWhite),
             SizedBox(width: 8),
             Text('Редактирование мероприятия'),
           ],
@@ -1282,7 +1282,7 @@ class _EventsScreenState extends State<EventsScreen>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.share, color: Colors.white),
+            Icon(Icons.share, color: AppConstants.surfaceWhite),
             SizedBox(width: 8),
             Text('Поделиться мероприятием'),
           ],
@@ -1319,7 +1319,7 @@ class _EventsScreenState extends State<EventsScreen>
                 SnackBar(
                   content: Row(
                     children: [
-                      Icon(Icons.delete, color: Colors.white),
+                      Icon(Icons.delete, color: AppConstants.surfaceWhite),
                       SizedBox(width: 8),
                       Text('Мероприятие удалено'),
                     ],
@@ -1645,7 +1645,7 @@ class _EventsScreenState extends State<EventsScreen>
         title: Text(
           'Мероприятия',
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppConstants.surfaceWhite,
         elevation: 0,
         actions: [
           IconButton(
@@ -1673,7 +1673,7 @@ class _EventsScreenState extends State<EventsScreen>
                       duration: Duration(milliseconds: 300),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppConstants.surfaceWhite,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -1717,7 +1717,7 @@ class _EventsScreenState extends State<EventsScreen>
                       duration: Duration(milliseconds: 300),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppConstants.surfaceWhite,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -1863,7 +1863,7 @@ class _EventsScreenState extends State<EventsScreen>
                   await provider.loadEvents();
                 },
                 color: Colors.black,
-                backgroundColor: Colors.white,
+                backgroundColor: AppConstants.surfaceWhite,
                 child: ListView.builder(
                   physics: BouncingScrollPhysics(),
                   padding: EdgeInsets.only(bottom: 80),
@@ -1890,7 +1890,7 @@ class _EventsScreenState extends State<EventsScreen>
         child: FloatingActionButton.extended(
           onPressed: _showAddEventDialog,
           backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+          foregroundColor: AppConstants.surfaceWhite,
           elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

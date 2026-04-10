@@ -13,6 +13,11 @@ docker compose up -d --build
 
 API: `http://localhost:8080/health`
 
+**Демо-вход в приложение** (значения из `docker-compose` → `API_DEMO_*`):
+
+- логин: `student@university.ru`
+- пароль: `password123`
+
 Полная инструкция (nginx, MAX, деплой на сервер): см. `deploy/README.md`.
 
 ## Что уже есть

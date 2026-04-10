@@ -46,6 +46,10 @@ class GradeItem(BaseModel):
     value: int
     type: str
     date: datetime
+    semester: int | None = None
+    zet: int | None = None
+    hours: int | None = None
+    gradeLabel: str | None = None
 
 
 class ExamItem(BaseModel):
@@ -76,3 +80,15 @@ class LabItem(BaseModel):
     status: str
     teacherComment: str | None = None
     updatedAt: datetime
+
+
+class PartnerScanBody(BaseModel):
+    raw: str
+
+
+class PartnerServiceItem(BaseModel):
+    id: str
+    title: str
+    partnerName: str
+    description: str
+    validUntil: datetime | None = None

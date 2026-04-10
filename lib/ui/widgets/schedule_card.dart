@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/constants.dart';
 import '../../core/providers/schedule_provider.dart';
 import '../../data/models/schedule.dart';
+import 'schedule_detail_sheet.dart';
 
 class ScheduleList extends StatelessWidget {
   const ScheduleList({super.key});
@@ -13,32 +17,31 @@ class ScheduleList extends StatelessWidget {
     final todaySchedule = _getTodaySchedule(scheduleProvider.schedule);
 
     if (scheduleProvider.isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(color: AppConstants.terracotta),
+        ),
+      );
     }
 
     if (todaySchedule.isEmpty) {
       return Center(
         child: Container(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(16),
+            color: AppConstants.surfaceMuted,
+            borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+            border: Border.all(color: const Color(0xFFE8E8E6)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.event_available,
-                size: 64,
-                color: Colors.grey[300],
-              ),
-              SizedBox(height: 16),
+              Icon(PhosphorIconsRegular.calendarCheck, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 16),
               Text(
                 'Нет занятий на сегодня',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -47,9 +50,7 @@ class ScheduleList extends StatelessWidget {
     }
 
     return Column(
-      children: todaySchedule.map((item) {
-        return _buildScheduleCard(item);
-      }).toList(),
+      children: todaySchedule.map((item) => _buildScheduleCard(context, item)).toList(),
     );
   }
 
@@ -62,110 +63,125 @@ class ScheduleList extends StatelessWidget {
     }).toList();
   }
 
-  Widget _buildScheduleCard(Schedule item) {
+  Widget _buildScheduleCard(BuildContext context, Schedule item) {
     final timeFormat = DateFormat('HH:mm');
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => showScheduleDetailSheet(context, item),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(8),
+              color: AppConstants.blockBlack,
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
+            child: Row(
               children: [
-                Text(
-                  timeFormat.format(item.startTime),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppConstants.blockBlackElevated,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        timeFormat.format(item.startTime),
+                        style: const TextStyle(
+                          color: AppConstants.onBlock,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        timeFormat.format(item.endTime),
+                        style: const TextStyle(
+                          color: AppConstants.onBlockSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  timeFormat.format(item.endTime),
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.subject,
+                        style: const TextStyle(
+                          color: AppConstants.onBlock,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${item.teacher} · ${item.type}',
+                        style: const TextStyle(
+                          color: AppConstants.onBlockSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      if (item.additionalInfo != null && item.additionalInfo!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.additionalInfo!,
+                          style: const TextStyle(
+                            color: AppConstants.onBlockSecondary,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          SizedBox(width: 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.subject,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '${item.teacher} • ${item.type}',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
-                ),
-                if (item.additionalInfo != null) ...[
-                  SizedBox(height: 4),
-                  Text(
-                    item.additionalInfo!,
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _getTypeColor(item.type),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        item.classroom,
+                        style: const TextStyle(
+                          color: AppConstants.surfaceWhite,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Icon(PhosphorIconsRegular.caretRight, color: AppConstants.terracottaMuted, size: 18),
+                  ],
+                ),
               ],
             ),
           ),
-
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _getTypeColor(item.type),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              item.classroom,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Color _getTypeColor(String type) {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'лекция':
-        return Colors.blue;
+        return AppConstants.terracotta;
       case 'практика':
-        return Colors.green;
+        return AppConstants.terracottaDark;
       case 'лабораторная':
-        return Colors.orange;
+        return const Color(0xFF8B4A3C);
       default:
-        return Colors.grey;
+        return AppConstants.secondaryColor;
     }
   }
 }

@@ -1,14 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants.dart';
-import '../../core/providers/portfolio_provider.dart';
+import '../../core/providers/main_nav_provider.dart';
+import '../../core/providers/partner_services_provider.dart';
 import '../../core/providers/student_provider.dart';
+import '../../data/models/partner_service_item.dart';
+import 'partner_qr_scan_screen.dart';
 
-/// Витрина (стиль T-Bank): баннеры, быстрые действия, карта партнёров, портфолио, привязка почты.
+/// Витрина: сервисы, партнёрские услуги (QR), портфолио.
 class ShowcaseScreen extends StatefulWidget {
   const ShowcaseScreen({super.key});
 
@@ -17,44 +22,12 @@ class ShowcaseScreen extends StatefulWidget {
 }
 
 class _ShowcaseScreenState extends State<ShowcaseScreen> {
-  final PageController _bannerController = PageController(viewportFraction: 0.88);
+  final PageController _bannerController = PageController(viewportFraction: 0.86);
   final ScrollController _scroll = ScrollController();
-  final GlobalKey _portfolioKey = GlobalKey();
-  final GlobalKey _mapKey = GlobalKey();
+  final GlobalKey _partnerKey = GlobalKey();
 
-  bool _localMapUnlock = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PortfolioProvider>().loadPortfolio();
-      _loadPrefs();
-    });
-  }
-
-  Future<void> _loadPrefs() async {
-    final p = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _localMapUnlock = p.getBool(AppConstants.prefPartnerMapUnlocked) ?? false;
-    });
-  }
-
-  Future<void> _setLocalMapUnlock(bool v) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(AppConstants.prefPartnerMapUnlocked, v);
-    if (mounted) setState(() => _localMapUnlock = v);
-  }
-
-  bool _apiMapAccess(StudentProvider sp) {
-    return sp.student?.additionalInfo['partnerMapAccess'] == true;
-  }
-
-  bool _showPartnerMap(StudentProvider sp) => _apiMapAccess(sp) || _localMapUnlock;
-
-  Future<void> _openPortal() async {
-    final uri = Uri.parse(AppConstants.portalRegisterUrl);
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -65,10 +38,197 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
     if (ctx != null) {
       Scrollable.ensureVisible(
         ctx,
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
+        alignment: 0.15,
       );
     }
+  }
+
+  void _goTab(int index) => context.read<MainNavProvider>().setTab(index);
+
+  void _openScanner(BuildContext context) {
+    if (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(builder: (_) => const PartnerQrScanScreen()),
+      );
+    } else {
+      _showManualQrDialog(context);
+    }
+  }
+
+  void _showManualQrDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Код из QR'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Вставьте строку из QR (как на телефоне)',
+            ),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Отмена'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final text = controller.text.trim();
+                if (text.isEmpty) return;
+                Navigator.pop(dialogContext);
+                try {
+                  await context.read<PartnerServicesProvider>().registerScan(text);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+                  }
+                }
+              },
+              child: const Text('Отправить на платформу'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openSearch() {
+    showSearch<void>(
+      context: context,
+      delegate: _ShowcaseSearchDelegate(
+        onSchedule: () => _goTab(1),
+        onHome: () => _goTab(0),
+        onOpenPortfolio: () => context.read<MainNavProvider>().goToProfilePortfolioTab(),
+        onScrollPartner: () => _scrollTo(_partnerKey),
+        onServices: () => _openServicesSheet(context),
+        onCertificates: () => _openCertificatesSheet(context),
+      ),
+    );
+  }
+
+  void _openServicesSheet(BuildContext ctx) {
+    showModalBottomSheet<void>(
+      context: ctx,
+      backgroundColor: AppConstants.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (c) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    'Сервисы',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.globe, color: AppConstants.terracotta),
+                  title: const Text('Сайт ТГПУ'),
+                  subtitle: Text(AppConstants.portalRegisterUrl, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _openUrl(AppConstants.portalRegisterUrl);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.graduationCap, color: AppConstants.terracotta),
+                  title: const Text('Электронное обучение'),
+                  subtitle: Text(AppConstants.portalStudyUrl, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _openUrl(AppConstants.portalStudyUrl);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.calendarBlank, color: AppConstants.terracotta),
+                  title: const Text('Расписание в приложении'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _goTab(1);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.house, color: AppConstants.terracotta),
+                  title: const Text('Главная'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _goTab(0);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.user, color: AppConstants.terracotta),
+                  title: const Text('Профиль'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _goTab(3);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openCertificatesSheet(BuildContext ctx) {
+    showModalBottomSheet<void>(
+      context: ctx,
+      backgroundColor: AppConstants.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (c) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    'Справки и документы',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.fileText, color: AppConstants.terracotta),
+                  title: const Text('Справка об обучении'),
+                  subtitle: const Text('Заказ через интеграцию с 1С / деканатом'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _openUrl(AppConstants.portalRegisterUrl);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.scroll, color: AppConstants.terracotta),
+                  title: const Text('Транскрипт / академическая справка'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    _openUrl(AppConstants.portalStudyUrl);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -80,437 +240,396 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final portfolio = context.watch<PortfolioProvider>();
+    final partners = context.watch<PartnerServicesProvider>();
 
     return Scaffold(
-      backgroundColor: AppConstants.backgroundColor,
+      backgroundColor: AppConstants.surfaceWhite,
       body: RefreshIndicator(
-        color: AppConstants.primaryColor,
+        color: AppConstants.terracotta,
         onRefresh: () async {
-          await context.read<PortfolioProvider>().loadPortfolio();
           await context.read<StudentProvider>().loadStudentData();
+          if (!context.mounted) return;
+          await context.read<PartnerServicesProvider>().loadServices();
         },
         child: CustomScrollView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-          SliverToBoxAdapter(child: _buildHeader(context)),
-          SliverToBoxAdapter(child: _buildQuickActions(context)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: KeyedSubtree(
-                key: _mapKey,
-                child: _buildMapBlock(context),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: _linkEmailCard(context),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                'Портфолио',
-                key: _portfolioKey,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
-          ),
-          if (portfolio.isLoading)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            )
-          else if (portfolio.error != null)
+            SliverToBoxAdapter(child: _buildHeader(context)),
+            SliverToBoxAdapter(child: _buildQuickActions(context)),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(portfolio.error!),
-              ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final item = portfolio.items[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    child: Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppConstants.primaryColor.withValues(alpha: 0.12),
-                          child: Icon(Icons.school_outlined, color: AppConstants.primaryColor),
-                        ),
-                        title: Text(item.title),
-                        subtitle: Text(
-                          '${item.category} · ${DateFormat('dd.MM.yyyy').format(item.date)}',
-                        ),
-                        trailing: Text(
-                          item.status,
-                          style: TextStyle(
-                            color: AppConstants.primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                childCount: portfolio.items.length,
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+                child: KeyedSubtree(
+                  key: _partnerKey,
+                  child: _buildPartnerServicesBlock(context, partners),
+                ),
               ),
             ),
-          const SliverToBoxAdapter(child: SizedBox(height: 88)),
-        ],
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: _linkEmailCard(context),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildPartnerServicesBlock(BuildContext context, PartnerServicesProvider partners) {
+    final student = context.watch<StudentProvider>().student;
+    final payload = student == null
+        ? 'TSPUT|pending'
+        : 'TSPUT|STUDENT|${student.id}|${student.group}|${student.fullName}';
+
     return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF3EC9C0),
-            Color(0xFF2AAB9F),
-            Color(0xFF1F8A82),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: AppConstants.surfaceWhite,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppConstants.borderSubtle),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/images/app_icon.png',
-                    width: 40,
-                    height: 40,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.apps, color: Colors.white, size: 36),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      AppConstants.appName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.search, color: Colors.white),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                readOnly: true,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Поиск появится после подключения каталога')),
-                  );
-                },
-                decoration: InputDecoration(
-                  hintText: 'Поиск',
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF8A96A8)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 148,
-                child: PageView.builder(
-                  controller: _bannerController,
-                  itemCount: 3,
-                  itemBuilder: (context, i) {
-                    final banners = [
-                      (
-                        'Сервисы ТГПУ',
-                        'Расписание, оценки и справки в одном приложении',
-                        'Подробнее',
-                      ),
-                      (
-                        'Партнёры вуза',
-                        'Скидки и точки на карте — персонально для студента',
-                        'К карте',
-                      ),
-                      (
-                        'Портфолио',
-                        'Учебный план и достижения в разделе ниже',
-                        'Смотреть',
-                      ),
-                    ];
-                    final b = banners[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: Card(
-                        color: Colors.white,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                b.$1,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Expanded(
-                                child: Text(
-                                  b.$2,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                width: double.infinity,
-                                child: FilledButton(
-                                  onPressed: () {
-                                    if (i == 1) _scrollTo(_mapKey);
-                                    if (i == 2) _scrollTo(_portfolioKey);
-                                    if (i == 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Раздел в разработке')),
-                                      );
-                                    }
-                                  },
-                                  child: Text(b.$3),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              Icon(PhosphorIconsRegular.identificationCard, color: AppConstants.terracotta, size: 28),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Карта лояльности',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Text(
+            'Покажите этот экран сотруднику партнёра для сканирования. Код привязан к вашему профилю (данные 1С).',
+            style: TextStyle(color: AppConstants.secondaryColor, height: 1.45, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppConstants.surfaceWhite,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppConstants.borderSubtle, width: 2),
+              ),
+              child: QrImageView(
+                data: payload,
+                version: QrVersions.auto,
+                size: 200,
+                eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppConstants.blockBlack),
+                dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: AppConstants.blockBlack),
+                backgroundColor: AppConstants.surfaceWhite,
+              ),
+            ),
+          ),
+          if (student != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              '${student.fullName} · ${student.group}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Text(
+            'Активированные услуги',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppConstants.blockBlack),
+          ),
+          const SizedBox(height: 8),
+          if (partners.isLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: AppConstants.terracotta)))
+          else if (partners.error != null)
+            Text(partners.error!, style: TextStyle(color: Colors.red[800], fontSize: 13))
+          else if (partners.items.isEmpty)
+            Text(
+              'Список пуст. Если на точке нужно отсканировать код акции — используйте кнопку ниже.',
+              style: TextStyle(color: AppConstants.secondaryColor, fontSize: 13),
+            )
+          else
+            Column(children: partners.items.map((e) => _partnerTile(e)).toList()),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _openScanner(context),
+              icon: const Icon(PhosphorIconsRegular.camera),
+              label: const Text('Сканировать код на точке (акция)'),
+            ),
+          ),
+          if (defaultTargetPlatform != TargetPlatform.android && defaultTargetPlatform != TargetPlatform.iOS)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'На ПК доступен ввод строки из QR вручную.',
+                style: TextStyle(fontSize: 12, color: AppConstants.secondaryColor),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _partnerTile(PartnerServiceItem e) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppConstants.surfaceMuted,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8E8E6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(e.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          const SizedBox(height: 4),
+          Text(e.partnerName, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+          if (e.description.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(e.description, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          ],
+          if (e.validUntil != null)
+            Text(
+              'До ${DateFormat('dd.MM.yyyy').format(e.validUntil!)}',
+              style: const TextStyle(fontSize: 11, color: AppConstants.terracottaDark, fontWeight: FontWeight.w600),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 12, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset(
+                  'assets/images/app_icon.png',
+                  width: 44,
+                  height: 44,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(PhosphorIconsRegular.graduationCap, size: 40, color: AppConstants.terracotta),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppConstants.appName,
+                    style: const TextStyle(
+                      color: AppConstants.blockBlack,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _openSearch,
+                  icon: Icon(PhosphorIconsRegular.magnifyingGlass, color: AppConstants.terracotta, size: 26),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              readOnly: true,
+              onTap: _openSearch,
+              decoration: InputDecoration(
+                hintText: 'Поиск по разделам и сервисам',
+                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 15),
+                prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: Colors.grey[500]),
+                filled: true,
+                fillColor: AppConstants.surfaceMuted,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              height: 168,
+              child: PageView.builder(
+                controller: _bannerController,
+                itemCount: 3,
+                itemBuilder: (context, i) {
+                  final banners = [
+                    (
+                      'Сервисы ТГПУ',
+                      'Расписание, обучение и разделы приложения.',
+                      'Открыть',
+                      () => _openServicesSheet(context),
+                    ),
+                    (
+                      'Карта лояльности',
+                      'Покажите QR сотруднику партнёра.',
+                      'К карте',
+                      () => _scrollTo(_partnerKey),
+                    ),
+                    (
+                      'Портфолио',
+                      'Разделы учебного плана — в профиле, как на сайте.',
+                      'Открыть',
+                      () => context.read<MainNavProvider>().goToProfilePortfolioTab(),
+                    ),
+                  ];
+                  final b = banners[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppConstants.blockBlack,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.all(22),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            b.$1,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppConstants.onBlock,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: Text(
+                              b.$2,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppConstants.onBlockSecondary,
+                                height: 1.45,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppConstants.terracotta,
+                                foregroundColor: AppConstants.surfaceWhite,
+                              ),
+                              onPressed: b.$4,
+                              child: Text(b.$3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    final actions = [
-      (Icons.folder_special_outlined, 'Портфолио', () => _scrollTo(_portfolioKey)),
-      (Icons.map_outlined, 'Карта', () => _scrollTo(_mapKey)),
-      (Icons.description_outlined, 'Справки', () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Заказ справок — после интеграции с 1С')),
-        );
-      }),
-      (Icons.apps_outlined, 'Сервисы', () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Каталог сервисов вуза — в roadmap')),
-        );
-      }),
+    final actions = <(IconData, String, VoidCallback)>[
+      (PhosphorIconsRegular.student, 'Портфолио', () => context.read<MainNavProvider>().goToProfilePortfolioTab()),
+      (PhosphorIconsRegular.identificationCard, 'Карта', () => _scrollTo(_partnerKey)),
+      (PhosphorIconsRegular.fileText, 'Справки', () => _openCertificatesSheet(context)),
+      (PhosphorIconsRegular.squaresFour, 'Сервисы', () => _openServicesSheet(context)),
     ];
-    return Transform.translate(
-      offset: const Offset(0, -18),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: actions.map((a) {
-                return InkWell(
-                  onTap: a.$3,
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 76,
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppConstants.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(a.$1, color: AppConstants.primaryColor),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          a.$2,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                          maxLines: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 10),
+        decoration: BoxDecoration(
+          color: AppConstants.surfaceWhite,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE8E8E6)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildMapBlock(BuildContext context) {
-    final sp = context.watch<StudentProvider>();
-    final student = sp.student;
-    final showMap = _showPartnerMap(sp);
-    final email = student?.email ?? 'ваш профиль';
-
-    if (!showMap) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.map_outlined, color: AppConstants.primaryColor, size: 28),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      'Карта партнёров ТГПУ',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Персональная карта с партнёрами и предложениями доступна после регистрации на портале университета и синхронизации с профилем.',
-                style: TextStyle(color: Colors.grey[700], height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _openPortal,
-                child: const Text('Зарегистрироваться на портале'),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: () => _setLocalMapUnlock(true),
-                child: const Text('Уже зарегистрирован — показать демо-карту'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Карта партнёров',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppConstants.accentYellow.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Демо',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: actions.map((a) {
+            return Expanded(
+              child: InkWell(
+                onTap: a.$3,
+                borderRadius: BorderRadius.circular(14),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: AppConstants.terracottaMuted,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(a.$1, color: AppConstants.terracottaDark, size: 26),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        a.$2,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                        maxLines: 2,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Привязка к профилю: $email',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Точки генерируются локально до подключения API карт.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SizedBox(
-                height: 220,
-                child: _PartnerMapMock(seed: email.hashCode),
               ),
-            ),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
   Widget _linkEmailCard(BuildContext context) {
-    return Card(
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        leading: Icon(Icons.link, color: AppConstants.primaryColor),
-        title: const Text(
-          'Другая почта в личном кабинете?',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-        ),
-        subtitle: const Text(
-          'Привяжите аккаунт, если студентский профиль заведён на другой email',
-          style: TextStyle(fontSize: 12),
-        ),
-        children: [
-          const Text(
-            'После запуска API вы сможете подтвердить владение почтой кодом. Сейчас — демонстрация интерфейса.',
-            style: TextStyle(fontSize: 13, height: 1.35),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppConstants.surfaceWhite,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE8E8E6)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+          leading: Icon(PhosphorIconsRegular.linkSimple, color: AppConstants.terracotta),
+          title: const Text(
+            'Другая почта в личном кабинете?',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           ),
-          const SizedBox(height: 12),
-          _LinkEmailForm(),
-        ],
+          subtitle: const Text(
+            'Привяжите аккаунт, если профиль на другой email',
+            style: TextStyle(fontSize: 12),
+          ),
+          children: const [
+            _LinkEmailForm(),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _LinkEmailForm extends StatefulWidget {
+  const _LinkEmailForm();
+
   @override
   State<_LinkEmailForm> createState() => _LinkEmailFormState();
 }
@@ -527,7 +646,13 @@ class _LinkEmailFormState extends State<_LinkEmailForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(
+          'Подтверждение почты выполняется через API интеграции с порталом вуза.',
+          style: TextStyle(fontSize: 13, height: 1.4, color: Colors.grey[700]),
+        ),
+        const SizedBox(height: 14),
         TextField(
           controller: _email,
           keyboardType: TextInputType.emailAddress,
@@ -536,28 +661,26 @@ class _LinkEmailFormState extends State<_LinkEmailForm> {
             labelText: 'Email для привязки',
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Код отправлен (демо). Реальная отправка — после API.'),
-                    ),
+                    const SnackBar(content: Text('Запрос кода — после подключения endpoint привязки на бэкенде.')),
                   );
                 },
                 child: const Text('Отправить код'),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
                 onPressed: () {
                   if (_email.text.trim().isEmpty) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Запрос на привязку ${_email.text.trim()} принят (демо)')),
+                    SnackBar(content: Text('Привязка ${_email.text.trim()} — ожидает API.')),
                   );
                 },
                 child: const Text('Подтвердить'),
@@ -570,91 +693,87 @@ class _LinkEmailFormState extends State<_LinkEmailForm> {
   }
 }
 
-class _PartnerMapMock extends StatelessWidget {
-  const _PartnerMapMock({required this.seed});
+class _ShowcaseSearchDelegate extends SearchDelegate<void> {
+  _ShowcaseSearchDelegate({
+    required this.onSchedule,
+    required this.onHome,
+    required this.onOpenPortfolio,
+    required this.onScrollPartner,
+    required this.onServices,
+    required this.onCertificates,
+  });
 
-  final int seed;
+  final VoidCallback onSchedule;
+  final VoidCallback onHome;
+  final VoidCallback onOpenPortfolio;
+  final VoidCallback onScrollPartner;
+  final VoidCallback onServices;
+  final VoidCallback onCertificates;
 
   @override
-  Widget build(BuildContext context) {
-    final rnd = seed.abs();
-    final partners = [
-      ('Библиотека ТГПУ', const Color(0xFF5C6BC0)),
-      ('Спорткомплекс', const Color(0xFF26A69A)),
-      ('Столовая', const Color(0xFFFFA726)),
-      ('ИПИТ', const Color(0xFFAB47BC)),
+  List<Widget>? buildActions(BuildContext context) {
+    if (query.isEmpty) return null;
+    return [
+      IconButton(
+        onPressed: () => query = '',
+        icon: Icon(PhosphorIconsRegular.x, color: AppConstants.blockBlack),
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () => close(context, null),
+      icon: Icon(PhosphorIconsRegular.caretLeft, color: AppConstants.blockBlack),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) => _buildList(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildList(context);
+
+  Widget _buildList(BuildContext context) {
+    final q = query.trim().toLowerCase();
+    final items = <_SearchHit>[
+      _SearchHit('Расписание', 'Открыть вкладку с занятиями', PhosphorIconsRegular.calendarBlank, onSchedule),
+      _SearchHit('Главная', 'Сводка, оценки, расписание дня', PhosphorIconsRegular.house, onHome),
+      _SearchHit('Портфолио', 'Вкладка в профиле', PhosphorIconsRegular.student, onOpenPortfolio),
+      _SearchHit('Карта лояльности', 'QR для показа партнёру', PhosphorIconsRegular.identificationCard, onScrollPartner),
+      _SearchHit('Сервисы', 'Сайт, LMS, разделы', PhosphorIconsRegular.squaresFour, onServices),
+      _SearchHit('Справки', 'Документы и портал', PhosphorIconsRegular.fileText, onCertificates),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final h = constraints.maxHeight;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFFE3F2FD),
-                    const Color(0xFFBBDEFB).withValues(alpha: 0.6),
-                  ],
-                ),
-              ),
-            ),
-            CustomPaint(painter: _GridPainter()),
-            ...List.generate(partners.length, (i) {
-              final left = 0.08 + ((rnd + i * 17) % 55) / 100.0;
-              final top = 0.12 + ((rnd + i * 31) % 50) / 100.0;
-              return Positioned(
-                left: w * left,
-                top: h * top,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.place, color: partners[i].$2, size: 32),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: const [
-                          BoxShadow(color: Color(0x22000000), blurRadius: 4),
-                        ],
-                      ),
-                      child: Text(
-                        partners[i].$1,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        );
-      },
+    final filtered = q.isEmpty
+        ? items
+        : items
+            .where((e) => e.title.toLowerCase().contains(q) || e.subtitle.toLowerCase().contains(q))
+            .toList();
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        for (final hit in filtered)
+          ListTile(
+            leading: Icon(hit.icon, color: AppConstants.terracotta),
+            title: Text(hit.title),
+            subtitle: Text(hit.subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            onTap: () {
+              close(context, null);
+              hit.onTap();
+            },
+          ),
+      ],
     );
   }
 }
 
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = const Color(0x33000000)
-      ..strokeWidth = 0.5;
-    const step = 28.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+class _SearchHit {
+  _SearchHit(this.title, this.subtitle, this.icon, this.onTap);
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
 }

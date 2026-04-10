@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, UTC
-from fastapi import FastAPI, Header, HTTPException
+from datetime import datetime, time, timedelta, UTC
+from fastapi import Body, FastAPI, Header, HTTPException
 
 from .config import settings
 from .schemas import (
@@ -8,6 +8,8 @@ from .schemas import (
     LabItem,
     LoginRequest,
     LoginResponse,
+    PartnerScanBody,
+    PartnerServiceItem,
     PortfolioItem,
     ScheduleItem,
     StudentResponse,
@@ -19,6 +21,16 @@ app = FastAPI(title=settings.app_name)
 def _require_auth(authorization: str | None) -> None:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def _bearer_token(authorization: str | None) -> str:
+    _require_auth(authorization)
+    assert authorization is not None
+    return authorization.split(" ", 1)[1].strip()
+
+
+# Персональные услуги по QR (в проде — запись в БД / 1С по токену студента).
+_partner_services_by_token: dict[str, list[PartnerServiceItem]] = {}
 
 
 @app.get("/health")
@@ -74,40 +86,134 @@ def student(authorization: str | None = Header(default=None)) -> StudentResponse
             "dormitory": "Не указано",
             "averageGrade": 4.7,
             "examsCount": 8,
-            "partnerMapAccess": False,
         },
+    )
+
+
+def _week_slot(weekday: int, hour: int, minute: int, **kwargs) -> ScheduleItem:
+    """weekday 0=пн … 6=вс от текущей календарной недели (UTC)."""
+    today = datetime.now(UTC).date()
+    monday = today - timedelta(days=today.weekday())
+    day = monday + timedelta(days=weekday)
+    start = datetime.combine(day, time(hour, minute), tzinfo=UTC)
+    return ScheduleItem(
+        startTime=start,
+        endTime=start + timedelta(hours=1, minutes=35),
+        **kwargs,
     )
 
 
 @app.get("/api/schedule", response_model=list[ScheduleItem])
 def schedule(authorization: str | None = Header(default=None)) -> list[ScheduleItem]:
     _require_auth(authorization)
-    now = datetime.now(UTC)
     return [
-        ScheduleItem(
+        _week_slot(
+            0,
+            8,
+            40,
             id="S1",
-            subject="Базы данных",
-            teacher="Сидоров И.И.",
-            classroom="312",
-            startTime=now + timedelta(hours=2),
-            endTime=now + timedelta(hours=3, minutes=30),
+            subject="Большие данные и распределенные системы",
+            teacher="Добровольский Николай Николаевич",
+            classroom="3-309-3",
             type="лекция",
-        )
+        ),
+        _week_slot(
+            0,
+            10,
+            25,
+            id="S2",
+            subject="Большие данные и распределенные системы",
+            teacher="Добровольский Николай Николаевич",
+            classroom="3-308а-3",
+            type="лабораторная",
+        ),
+        _week_slot(
+            1,
+            8,
+            40,
+            id="S3",
+            subject="Экономико-математические методы и модели",
+            teacher="Рарова Елена Михайловна",
+            classroom="3-313-3",
+            type="лекция",
+        ),
+        _week_slot(
+            3,
+            8,
+            40,
+            id="S4",
+            subject="Методы оптимизации",
+            teacher="Родионов Александр Валерьевич",
+            classroom="3-313-3",
+            type="лекция",
+        ),
     ]
 
 
 @app.get("/api/grades", response_model=list[GradeItem])
 def grades(authorization: str | None = Header(default=None)) -> list[GradeItem]:
     _require_auth(authorization)
+    # Демо-данные в духе ведомости из 1С (семестр, ЗЕТ, часы, подпись оценки).
     return [
         GradeItem(
             id="G1",
+            subject="Безопасность жизнедеятельности",
+            teacher="—",
+            value=0,
+            type="Зачёт",
+            date=datetime(2022, 12, 23, tzinfo=UTC),
+            semester=1,
+            zet=3,
+            hours=108,
+            gradeLabel="Зачтено",
+        ),
+        GradeItem(
+            id="G2",
+            subject="Введение в программирование",
+            teacher="—",
+            value=4,
+            type="Экзамен",
+            date=datetime(2023, 1, 17, tzinfo=UTC),
+            semester=1,
+            zet=5,
+            hours=180,
+            gradeLabel="Хорошо",
+        ),
+        GradeItem(
+            id="G3",
+            subject="Дискретная математика",
+            teacher="—",
+            value=0,
+            type="Зачёт",
+            date=datetime(2022, 12, 28, tzinfo=UTC),
+            semester=1,
+            zet=4,
+            hours=144,
+            gradeLabel="Зачтено",
+        ),
+        GradeItem(
+            id="G4",
+            subject="Математический анализ",
+            teacher="—",
+            value=4,
+            type="Экзамен",
+            date=datetime(2023, 1, 12, tzinfo=UTC),
+            semester=1,
+            zet=5,
+            hours=180,
+            gradeLabel="Хорошо",
+        ),
+        GradeItem(
+            id="G5",
             subject="Алгоритмы",
             teacher="Петров А.А.",
             value=5,
             type="лабораторная",
             date=datetime.now(UTC) - timedelta(days=5),
-        )
+            semester=7,
+            zet=3,
+            hours=36,
+        ),
     ]
 
 
@@ -189,6 +295,32 @@ def portfolio(authorization: str | None = Header(default=None)) -> list[Portfoli
             source="1C/Учебный план",
         ),
     ]
+
+
+@app.post("/api/partner-services/scan")
+def partner_scan(
+    authorization: str | None = Header(default=None),
+    body: PartnerScanBody = Body(...),
+) -> dict:
+    tok = _bearer_token(authorization)
+    raw = body.raw.strip()
+    if not raw:
+        raise HTTPException(status_code=400, detail="empty raw")
+    item = PartnerServiceItem(
+        id=f"ps_{abs(hash(raw)) % 10 ** 10}",
+        title="Услуга по QR",
+        partnerName="Партнёр (интеграция)",
+        description=raw if len(raw) <= 500 else raw[:497] + "...",
+        validUntil=None,
+    )
+    _partner_services_by_token.setdefault(tok, []).append(item)
+    return {"ok": True}
+
+
+@app.get("/api/partner-services", response_model=list[PartnerServiceItem])
+def partner_services_list(authorization: str | None = Header(default=None)) -> list[PartnerServiceItem]:
+    tok = _bearer_token(authorization)
+    return list(_partner_services_by_token.get(tok, []))
 
 
 @app.get("/api/moodle/labs", response_model=list[LabItem])

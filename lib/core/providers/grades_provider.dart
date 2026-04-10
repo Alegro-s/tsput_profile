@@ -15,6 +15,7 @@ class GradesProvider with ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadGrades() async {
+    await Future<void>.delayed(Duration.zero);
     _isLoading = true;
     _error = null;
     notifyListeners();

@@ -13,6 +13,7 @@ class StudentProvider with ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadStudentData() async {
+    await Future<void>.delayed(Duration.zero);
     _isLoading = true;
     _error = null;
     notifyListeners();

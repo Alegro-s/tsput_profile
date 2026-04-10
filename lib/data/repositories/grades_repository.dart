@@ -14,8 +14,7 @@ class GradesRepository {
   Future<double> getAverageGrade() async {
     final grades = await getGrades();
 
-    // Фильтруем только оценки с числовым значением
-    final validGrades = grades.where((g) => g.value > 0 && g.value <= 5);
+    final validGrades = grades.where((g) => g.isNumericScore);
 
     if (validGrades.isEmpty) return 0.0;
 

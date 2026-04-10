@@ -20,6 +20,55 @@ docker compose up -d --build
 
 Логин API (демо): `student@university.ru` / `password123`
 
+## Миграция на VPS (замена старого проекта, пример IP `72.56.244.26`)
+
+Закрытые у хостинга порты почты/RDP (25, 465, 587, 2525, 3389, …) **не мешают**: API и приложение используют **80/443** и/или **8080**.
+
+**1. Остановить и убрать старый проект** (если был в Docker):
+
+```bash
+cd ~/TulaTravelv1.2   # или где лежал compose
+docker compose down -v   # -v удалит тома БД старого проекта; без -v тома останутся
+cd ~
+rm -rf TulaTravelv1.2   # только если бэкап не нужен
+```
+
+**2. Поставить этот проект**
+
+```bash
+cd ~
+git clone <URL_вашего_репозитория> tsput_profile
+cd tsput_profile
+docker compose up -d --build
+```
+
+Проверка снаружи (подставь свой IP):
+
+```bash
+curl http://72.56.244.26:8080/health
+```
+
+**3. Flutter / мобильное приложение**
+
+- Только API на **8080** (без nginx-профиля `web`):
+
+```text
+INTEGRATION_BASE_URL=http://72.56.244.26:8080
+```
+
+- Если поднят **nginx** на **80** с прокси `/api` (профиль `web`, см. ниже), база для клиента:
+
+```text
+INTEGRATION_BASE_URL=http://72.56.244.26
+```
+
+(без порта и без `/` в конце; пути `/api/...` добавляет само приложение.)
+
+**4. Безопасность**
+
+- В проде **не открывайте PostgreSQL наружу**: в `docker-compose.yml` у сервиса `db` уберите проброс `ports: "5432:5432"` или ограничьте файрволом только `127.0.0.1`.
+- Для продакшена лучше **HTTPS** (certbot / Caddy) и домен; тогда `INTEGRATION_BASE_URL=https://ваш-домен.ru`.
+
 ## Залить проект на сервер (ты делаешь у себя)
 
 Пример с `scp` (замени `USER` и `HOST`):
@@ -45,11 +94,6 @@ flutter run --dart-define=INTEGRATION_BASE_URL=http://YOUR_SERVER_IP:8080
 ```bash
 flutter build apk --release --dart-define=INTEGRATION_BASE_URL=https://your-domain.ru
 ```
-
-## Офлайн-режим (тест без сервера)
-
-В приложении включена демо-авторизация без сети: те же `student@university.ru` / `password123`.  
-При недоступности сервера выдаётся токен `offline_...`, данные берутся из встроенного мока.
 
 ## MAX Mini App
 

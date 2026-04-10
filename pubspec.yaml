@@ -23,6 +23,11 @@ dependencies:
   printing: ^5.14.2
   flutter_secure_storage: ^10.0.0
   url_launcher: ^6.3.1
+  phosphor_flutter: ^2.1.0
+  package_info_plus: ^8.1.2
+  google_fonts: ^6.2.1
+  mobile_scanner: ^7.0.0
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -31,6 +36,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
 
 flutter_launcher_icons:
+  windows: true
   android: true
   ios: true
   remove_alpha_ios: true
@@ -43,3 +49,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/app_icon.png
+    - assets/fonts/FONTS.txt

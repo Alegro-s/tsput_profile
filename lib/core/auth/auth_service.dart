@@ -1,4 +1,3 @@
-import '../../core/constants.dart';
 import '../../data/services/api_service.dart';
 import 'secure_storage.dart';
 
@@ -13,30 +12,17 @@ class AuthService {
       await SecureStorage.saveAuthToken(token);
       return response;
     }
-    if (response['_offline'] == true && AppConstants.offlineDemoEnabled) {
-      if (login == AppConstants.demoLogin && password == AppConstants.demoPassword) {
-        final token = 'offline_${DateTime.now().millisecondsSinceEpoch}';
-        await SecureStorage.saveLoginData(login, password);
-        await SecureStorage.saveAuthToken(token);
-        return {
-          'success': true,
-          'token': token,
-          'user': {
-            'id': 'ST001',
-            'name': 'Виноградов Игорь Денисович',
-            'group': '1521621',
-          },
-        };
-      }
-    }
     return response;
   }
 
   static Future<bool> validateToken(String token) async {
     if (token.isEmpty) return false;
-    if (token.startsWith('offline_')) return true;
-    final studentData = await _apiService.fetchStudentData(token);
-    return studentData.isNotEmpty;
+    try {
+      final studentData = await _apiService.fetchStudentData(token);
+      return studentData.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> logout() async {

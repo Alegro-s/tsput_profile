@@ -16,6 +16,9 @@ import 'core/providers/events_provider.dart';
 import 'core/providers/grades_provider.dart';
 import 'core/providers/exams_provider.dart';
 import 'core/providers/portfolio_provider.dart';
+import 'core/providers/partner_services_provider.dart';
+import 'core/providers/main_nav_provider.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +42,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GradesProvider()),
         ChangeNotifierProvider(create: (_) => ExamsProvider()),
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
+        ChangeNotifierProvider(create: (_) => PartnerServicesProvider()),
+        ChangeNotifierProvider(create: (_) => MainNavProvider()),
       ],
       child: MaterialApp(
         title: 'ТГПУ профиль',
@@ -107,65 +112,56 @@ class AuthWrapper extends StatelessWidget {
       context.read<GradesProvider>().loadGrades(),
       context.read<ExamsProvider>().loadExams(),
       context.read<PortfolioProvider>().loadPortfolio(),
+      context.read<PartnerServicesProvider>().loadServices(),
     ]);
   }
 }
 
-class MainNavigation extends StatefulWidget {
+class MainNavigation extends StatelessWidget {
   const MainNavigation({super.key});
 
-  @override
-  State<MainNavigation> createState() => _MainNavigationState();
-}
-
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
+  static final List<Widget> _screens = [
     HomeScreen(),
-    ScheduleScreen(),
+    const ScheduleScreen(),
     ShowcaseScreen(),
-    ProfileScreen(),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final nav = context.watch<MainNavProvider>();
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: nav.index,
         children: _screens,
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey[200]!)),
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE8E8E6))),
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          items: const [
+          currentIndex: nav.index,
+          onTap: (index) => context.read<MainNavProvider>().setTab(index),
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
+              icon: Icon(PhosphorIconsRegular.house),
+              activeIcon: Icon(PhosphorIconsFill.house),
               label: 'главная',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
+              icon: Icon(PhosphorIconsRegular.calendarBlank),
+              activeIcon: Icon(PhosphorIconsFill.calendarBlank),
               label: 'расписание',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.grid_view_outlined),
-              activeIcon: Icon(Icons.grid_view_rounded),
+              icon: Icon(PhosphorIconsRegular.squaresFour),
+              activeIcon: Icon(PhosphorIconsFill.squaresFour),
               label: 'витрина',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outlined),
-              activeIcon: Icon(Icons.person),
+              icon: Icon(PhosphorIconsRegular.user),
+              activeIcon: Icon(PhosphorIconsFill.user),
               label: 'профиль',
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../core/providers/auth_provider.dart';
@@ -23,13 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loginController.text = AppConstants.demoLogin;
-    _passwordController.text = AppConstants.demoPassword;
-    _checkSavedCredentials();
-  }
-
-  Future<void> _checkSavedCredentials() async {
-    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   @override
@@ -56,9 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 88,
                 height: 88,
                 errorBuilder: (context, error, stackTrace) => Icon(
-                  Icons.school_rounded,
+                  PhosphorIconsRegular.graduationCap,
                   size: 72,
-                  color: AppConstants.primaryColor,
+                  color: AppConstants.terracotta,
                 ),
               ),
               const SizedBox(height: 20),
@@ -74,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'Вход в личный кабинет студента',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
+                      color: AppConstants.secondaryColor,
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -89,9 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildTextField(
                       context,
                       controller: _loginController,
-                      label: 'Логин (ID студента)',
-                      hintText: 'Пример: ST001',
-                      prefixIcon: Icons.person,
+                      label: 'Логин',
+                      hintText: AppConstants.devDockerDemoLogin,
+                      prefixIcon: PhosphorIconsRegular.user,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Введите логин';
@@ -107,12 +101,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       controller: _passwordController,
                       label: 'Пароль',
-                      hintText: 'Введите ваш пароль',
-                      prefixIcon: Icons.lock,
+                      hintText: AppConstants.devDockerDemoPassword,
+                      prefixIcon: PhosphorIconsRegular.lock,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                          _obscurePassword ? PhosphorIconsRegular.eye : PhosphorIconsRegular.eyeSlash,
                           color: Colors.grey,
                         ),
                         onPressed: () {
@@ -165,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 22,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.black87,
+                                  color: AppConstants.surfaceWhite,
                                 ),
                               )
                             : const Text('Войти'),
@@ -179,13 +173,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              Icon(PhosphorIconsRegular.warningCircle, color: Colors.red, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -194,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, size: 16),
+                                icon: Icon(PhosphorIconsRegular.x, size: 16),
                                 onPressed: () => authProvider.clearError(),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -204,63 +198,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                    // Демо-доступ
-                    const SizedBox(height: 180),
+                    const SizedBox(height: 48),
                     Text(
-                      'Для тестирования используйте:',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppConstants.primaryColor.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Логин: ${AppConstants.demoLogin}',
-                                style: TextStyle(color: AppConstants.primaryColor),
-                              ),
-                            ],
+                      'Пока нет боевого API, локальный Docker — полноценный стенд (те же маршруты, что у продакшена). '
+                      'Демо-логин и пароль совпадают с подсказками в полях выше.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppConstants.secondaryColor,
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Пароль: ${AppConstants.demoPassword}',
-                                style: TextStyle(color: AppConstants.primaryColor),
-                              ),
-                            ],
-                          ),
-                          if (AppConstants.offlineDemoEnabled) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              'Без сети: при недоступности сервера те же учётные данные откроют демо (офлайн).',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[700],
-                                  ),
-                            ),
-                          ],
-                        ],
-                      ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'API: ${AppConstants.integrationBaseUrl}',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[500],
+                            color: AppConstants.secondaryColor,
                             fontSize: 11,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Нет подключения? Запустите бэкенд (например docker compose up в корне проекта). '
+                      'С телефона в Wi‑Fi укажите IP вашего ПК: '
+                      'flutter run --dart-define=INTEGRATION_BASE_URL=http://IP:8080',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppConstants.secondaryColor,
+                            fontSize: 11,
+                            height: 1.35,
                           ),
                     ),
 
@@ -327,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderSide: BorderSide(color: AppConstants.primaryColor, width: 2),
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppConstants.surfaceWhite,
           ),
         ),
       ],
@@ -355,37 +321,4 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _showBiometricPrompt(BuildContext context) async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Быстрый вход'),
-        content: const Text(
-          'Хотите включить быстрый вход с помощью отпечатка пальца?\n\nВы сможете быстро входить в приложение без ввода пароля.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Не сейчас'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final authProvider = context.read<AuthProvider>();
-              // Реализация биометрии будет добавлена позже
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Быстрый вход включен!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-            child: const Text('Включить'),
-          ),
-        ],
-      ),
-    );
-  }
 }

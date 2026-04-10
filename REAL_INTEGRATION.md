@@ -4,7 +4,7 @@
 - Приложение переведено на API-first подход: `ApiService` в `lib/data/services/api_service.dart`.
 - Убрана зависимость от отсутствующих `assets/data/*.json` для ключевых сущностей.
 - Добавлен экран `Portfolio` и провайдер `PortfolioProvider`.
-- Авторизация теперь идет через `ApiService.login(...)` с fallback-режимом для разработки.
+- Авторизация идёт через `ApiService.login(...)` на `INTEGRATION_BASE_URL`; локальный стенд — `docker compose` (см. `backend/README.md`).
 
 ## 2) Интеграция с 1C
 Обычно для 1C используются два пути:

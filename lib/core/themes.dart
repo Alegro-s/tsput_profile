@@ -1,53 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'constants.dart';
 
+/// Текст: Manrope (кириллица, близко к геометрическому гротеску). Шрифт Granate (Art. Lebedev) —
+/// коммерческий; чтобы использовать его, добавьте .ttf в assets/fonts, объявите в pubspec и
+/// замените вызов ниже на ThemeData(textTheme: base.textTheme.apply(fontFamily: 'Granate')).
 class AppThemes {
-  static ThemeData lightTheme = ThemeData(
+  static ThemeData get lightTheme {
+    final colorScheme = ColorScheme.light(
+      primary: AppConstants.terracotta,
+      onPrimary: AppConstants.surfaceWhite,
+      secondary: AppConstants.terracottaDark,
+      onSecondary: AppConstants.surfaceWhite,
+      surface: AppConstants.surfaceWhite,
+      onSurface: AppConstants.blockBlack,
+      error: AppConstants.terracottaDark,
+      outline: const Color(0xFFE0E0DE),
+    );
+
+    final base = ThemeData(
     useMaterial3: true,
-    primaryColor: AppConstants.primaryColor,
-    scaffoldBackgroundColor: AppConstants.backgroundColor,
-    colorScheme: ColorScheme.light(
-      primary: AppConstants.primaryColor,
-      onPrimary: Colors.white,
-      secondary: AppConstants.accentYellow,
-      onSecondary: Colors.black87,
-      surface: AppConstants.cardWhite,
-      onSurface: Colors.black87,
-      error: AppConstants.accentOrange,
-      outline: const Color(0xFFE2E8F0),
-    ),
+    brightness: Brightness.light,
+    primaryColor: AppConstants.terracotta,
+    scaffoldBackgroundColor: AppConstants.surfaceWhite,
+    colorScheme: colorScheme,
     appBarTheme: AppBarTheme(
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: false,
-      backgroundColor: AppConstants.cardWhite,
-      foregroundColor: Colors.black87,
-      titleTextStyle: const TextStyle(
-        color: Colors.black87,
-        fontSize: 22,
+      backgroundColor: AppConstants.surfaceWhite,
+      foregroundColor: AppConstants.blockBlack,
+      surfaceTintColor: Colors.transparent,
+      titleTextStyle: GoogleFonts.manrope(
+        color: AppConstants.blockBlack,
+        fontSize: 20,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
+        letterSpacing: -0.4,
       ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: AppConstants.cardWhite,
-      selectedItemColor: AppConstants.primaryColor,
+      backgroundColor: AppConstants.surfaceWhite,
+      selectedItemColor: AppConstants.terracotta,
       unselectedItemColor: AppConstants.secondaryColor,
       showUnselectedLabels: true,
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
+      elevation: 0,
     ),
+    dividerTheme: const DividerThemeData(color: Color(0xFFE8E8E6), thickness: 1),
     cardTheme: CardThemeData(
       elevation: 0,
-      color: AppConstants.cardWhite,
+      color: AppConstants.surfaceWhite,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+        side: const BorderSide(color: Color(0xFFE8E8E6)),
       ),
-      clipBehavior: Clip.antiAlias,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppConstants.accentYellow,
-        foregroundColor: Colors.black87,
+        backgroundColor: AppConstants.terracotta,
+        foregroundColor: AppConstants.surfaceWhite,
         minimumSize: Size(double.infinity, AppConstants.buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -60,8 +73,8 @@ class AppThemes {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppConstants.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: AppConstants.blockBlack,
+        foregroundColor: AppConstants.onBlock,
         minimumSize: Size(double.infinity, AppConstants.buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -69,14 +82,75 @@ class AppThemes {
         elevation: 0,
       ),
     ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppConstants.blockBlack,
+        side: const BorderSide(color: AppConstants.blockBlack, width: 1.5),
+        minimumSize: Size(double.infinity, AppConstants.buttonHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFF0F2F5),
+      fillColor: AppConstants.surfaceMuted,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppConstants.terracotta, width: 2),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
   );
+
+    return base.copyWith(
+      textTheme: GoogleFonts.manropeTextTheme(base.textTheme).apply(
+        bodyColor: AppConstants.blockBlack,
+        displayColor: AppConstants.blockBlack,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppConstants.surfaceWhite,
+        surfaceTintColor: Colors.transparent,
+        dragHandleColor: AppConstants.sheetHandle,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppConstants.sheetTopRadius),
+          ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppConstants.surfaceWhite,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        titleTextStyle: GoogleFonts.manrope(
+          color: AppConstants.blockBlack,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: GoogleFonts.manrope(
+          color: AppConstants.secondaryColor,
+          fontSize: 15,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppConstants.blockBlack,
+        contentTextStyle: GoogleFonts.manrope(
+          color: AppConstants.onBlock,
+          fontSize: 14,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: AppConstants.terracotta,
+        textColor: AppConstants.blockBlack,
+      ),
+    );
+  }
 }

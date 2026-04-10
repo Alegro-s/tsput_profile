@@ -15,6 +15,7 @@ class ExamsProvider with ChangeNotifier {
   String? get error => _error;
 
   Future<void> loadExams() async {
+    await Future<void>.delayed(Duration.zero);
     _isLoading = true;
     _error = null;
     notifyListeners();
