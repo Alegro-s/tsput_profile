@@ -18,5 +18,11 @@ class Settings(BaseSettings):
     api_demo_login: str = "student@university.ru"
     api_demo_password: str = "password123"
 
+    # Вход как в Moodle (ID, почта, ФИО) — пароль тот же, что в Moodle; задаётся на сервере.
+    moodle_student_id: str = ""
+    moodle_email: str = ""
+    student_full_name: str = ""
+    moodle_password: str = ""
+
 
 settings = Settings()

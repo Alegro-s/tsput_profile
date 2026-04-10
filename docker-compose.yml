@@ -27,6 +27,10 @@ services:
       DATABASE_URL: postgresql://tsput:tsput@db:5432/tsput_profile
       API_DEMO_LOGIN: student@university.ru
       API_DEMO_PASSWORD: password123
+      MOODLE_STUDENT_ID: ${MOODLE_STUDENT_ID:-}
+      MOODLE_EMAIL: ${MOODLE_EMAIL:-}
+      STUDENT_FULL_NAME: ${STUDENT_FULL_NAME:-}
+      MOODLE_PASSWORD: ${MOODLE_PASSWORD:-}
     ports:
       - "8080:8080"
     depends_on:

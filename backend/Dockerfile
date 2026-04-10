@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY local_users.json ./local_users.json
 COPY app ./app
 
 EXPOSE 8080

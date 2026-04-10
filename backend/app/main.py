@@ -2,6 +2,7 @@ from datetime import datetime, time, timedelta, UTC
 from fastapi import Body, FastAPI, Header, HTTPException
 
 from .config import settings
+from . import local_users_loader
 from .schemas import (
     ExamItem,
     GradeItem,
@@ -43,14 +44,54 @@ def sync() -> dict:
     return {"success": True}
 
 
+def _normalize_name(value: str) -> str:
+    return " ".join(value.strip().split()).casefold()
+
+
+def _moodle_login_accepted(raw_login: str, password: str) -> bool:
+    if not settings.moodle_password:
+        return False
+    if password != settings.moodle_password:
+        return False
+    ident = raw_login.strip()
+    ident_cf = ident.casefold()
+    if settings.moodle_student_id and ident == settings.moodle_student_id.strip():
+        return True
+    if settings.moodle_email and ident_cf == settings.moodle_email.strip().casefold():
+        return True
+    if settings.student_full_name and _normalize_name(ident) == _normalize_name(settings.student_full_name):
+        return True
+    return False
+
+
 @app.post("/api/auth/login", response_model=LoginResponse)
 def login(payload: LoginRequest) -> LoginResponse:
-    if payload.login == settings.api_demo_login and payload.password == settings.api_demo_password:
+    # 1) Локальный файл backend/local_users.json — тесты без Moodle URL и без .env
+    local_user = local_users_loader.match_local_user(payload.login, payload.password)
+    if local_user is not None:
+        return LoginResponse(
+            success=True,
+            token=f"demo_{int(datetime.now(UTC).timestamp())}",
+            user=local_user,
+        )
+
+    demo_ok = (
+        payload.login.strip().casefold() == settings.api_demo_login.strip().casefold()
+        and payload.password == settings.api_demo_password
+    )
+    moodle_ok = _moodle_login_accepted(payload.login, payload.password)
+
+    if demo_ok or moodle_ok:
+        user_id = (
+            settings.moodle_student_id.strip()
+            if moodle_ok and settings.moodle_student_id.strip()
+            else "ST001"
+        )
         return LoginResponse(
             success=True,
             token=f"demo_{int(datetime.now(UTC).timestamp())}",
             user={
-                "id": "ST001",
+                "id": user_id,
                 "name": "Виноградов Игорь Денисович",
                 "group": "1521621",
             },

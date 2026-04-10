@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Вход в личный кабинет студента',
+                'Вход по данным электронного обучения (Moodle)',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppConstants.secondaryColor,
                     ),
@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       controller: _loginController,
                       label: 'Логин',
-                      hintText: AppConstants.devDockerDemoLogin,
+                      hintText: 'ID в Moodle, почта или ФИО',
                       prefixIcon: PhosphorIconsRegular.user,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       controller: _passwordController,
                       label: 'Пароль',
-                      hintText: AppConstants.devDockerDemoPassword,
+                      hintText: 'Пароль от Moodle',
                       prefixIcon: PhosphorIconsRegular.lock,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
@@ -198,52 +198,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
                     Text(
-                      'Пока нет боевого API, локальный Docker — полноценный стенд (те же маршруты, что у продакшена). '
-                      'Демо-логин и пароль совпадают с подсказками в полях выше.',
+                      'v1.0.0 · ТГПУ профиль',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppConstants.secondaryColor,
                           ),
-                    ),
-
-                    const SizedBox(height: 12),
-                    Text(
-                      'API: ${AppConstants.integrationBaseUrl}',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppConstants.secondaryColor,
-                            fontSize: 11,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Нет подключения? Запустите бэкенд (например docker compose up в корне проекта). '
-                      'С телефона в Wi‑Fi укажите IP вашего ПК: '
-                      'flutter run --dart-define=INTEGRATION_BASE_URL=http://IP:8080',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppConstants.secondaryColor,
-                            fontSize: 11,
-                            height: 1.35,
-                          ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Информация о приложении
-                    Text(
-                      'v1.0.0 | ТГПУ профиль',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                    Text(
-                      'Разработано Alegro',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[500],
-                      ),
                     ),
                   ],
                 ),

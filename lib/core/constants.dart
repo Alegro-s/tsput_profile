@@ -8,10 +8,6 @@ class AppConstants {
   /// Базовый URL бэкенда. Задаётся через `--dart-define=INTEGRATION_BASE_URL=...` или платформенный умолчание (см. [IntegrationRuntime]).
   static String get integrationBaseUrl => IntegrationRuntime.baseUrl;
 
-  /// Совпадают с `API_DEMO_LOGIN` / `API_DEMO_PASSWORD` в `docker-compose.yml` (только локальный стенд).
-  static const String devDockerDemoLogin = 'student@university.ru';
-  static const String devDockerDemoPassword = 'password123';
-
   static const String portalRegisterUrl = 'https://tsput.ru';
   static const String portalStudyUrl = 'https://study.tsput.ru';
 

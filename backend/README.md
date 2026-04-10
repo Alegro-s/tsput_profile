@@ -13,12 +13,26 @@ docker compose up -d --build
 
 API: `http://localhost:8080/health`
 
-**Демо-вход в приложение** (значения из `docker-compose` → `API_DEMO_*`):
+**Демо-вход** (переменные `API_DEMO_*` в `docker-compose`):
 
-- логин: `student@university.ru`
-- пароль: `password123`
+- логин: `student@university.ru` · пароль: `password123`
 
-Полная инструкция (nginx, MAX, деплой на сервер): см. `deploy/README.md`.
+**Вход как в Moodle** (на сервере задайте в `.env` рядом с `docker-compose.yml` или в `environment`):
+
+- `MOODLE_STUDENT_ID` — числовой ID (например `24807`)
+- `MOODLE_EMAIL` — почта из профиля Moodle (опционально)
+- `STUDENT_FULL_NAME` — ФИО для входа по имени (опционально)
+- `MOODLE_PASSWORD` — пароль от Moodle (обязателен для этих вариантов)
+
+### Вход своим логином (без Moodle API) — `local_users.json`
+
+В репозитории уже лежит **`backend/local_users.json`**: в нём список, чем можно войти (ID `24807`, почта, ФИО) и пароль по умолчанию **`password123`**.
+
+**Что сделать:** откройте этот файл и замените `password123` на **ваш пароль от Moodle**. Подробно по шагам — файл **`backend/КАК_ВОЙТИ.txt`**.
+
+Docker-образ копирует `local_users.json` внутрь контейнера (`Dockerfile`), после правки выполните `docker compose up -d --build`.
+
+Полная инструкция (nginx, MAX, деплой): см. `deploy/README.md`.
 
 ## Что уже есть
 - `POST /api/auth/login`

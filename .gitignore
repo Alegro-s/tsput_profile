@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Секреты деплоя (Moodle, демо-пароли)
+.env
+backend/.env
+# Локальный override Docker (опционально)
+docker-compose.override.yml
