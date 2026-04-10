@@ -31,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (result['success'] == true) {
         _isAuthenticated = true;
-        _userName = result['user']['name'];
+        _userName = (result['user'] as Map<String, dynamic>?)?['name'] as String?;
 
         if (rememberMe) {
           await SecureStorage.saveLoginData(login, password);
@@ -97,6 +97,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _init() {}
+  Future<void> _init() async {
+    await checkAuthStatus();
+  }
 
 }

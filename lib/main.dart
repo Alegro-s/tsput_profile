@@ -3,17 +3,19 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:tsput_profile/ui/auth/login_screen.dart';
-import 'package:tsput_profile/ui/screens/events_screen.dart';
 import 'package:tsput_profile/ui/screens/home_screen.dart';
+import 'package:tsput_profile/ui/screens/showcase_screen.dart';
 import 'package:tsput_profile/ui/screens/profile_screen.dart';
 import 'package:tsput_profile/ui/screens/schedule_screen.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/constants.dart';
 import 'core/themes.dart';
 import 'core/providers/student_provider.dart';
 import 'core/providers/schedule_provider.dart';
 import 'core/providers/events_provider.dart';
 import 'core/providers/grades_provider.dart';
 import 'core/providers/exams_provider.dart';
+import 'core/providers/portfolio_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,9 +38,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EventsProvider()),
         ChangeNotifierProvider(create: (_) => GradesProvider()),
         ChangeNotifierProvider(create: (_) => ExamsProvider()),
+        ChangeNotifierProvider(create: (_) => PortfolioProvider()),
       ],
       child: MaterialApp(
-        title: 'TSPUT Student Account',
+        title: 'ТГПУ профиль',
         debugShowCheckedModeBanner: false,
         theme: AppThemes.lightTheme,
         localizationsDelegates: [
@@ -66,12 +69,12 @@ class AuthWrapper extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              backgroundColor: Colors.white,
+              backgroundColor: AppConstants.backgroundColor,
               body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: Colors.black),
+                    CircularProgressIndicator(color: AppConstants.primaryColor),
                     SizedBox(height: 16),
                     Text(
                       'Загрузка данных...',
@@ -101,9 +104,9 @@ class AuthWrapper extends StatelessWidget {
     await Future.wait([
       context.read<StudentProvider>().loadStudentData(),
       context.read<ScheduleProvider>().loadSchedule(),
-      context.read<EventsProvider>().loadEvents(),
       context.read<GradesProvider>().loadGrades(),
       context.read<ExamsProvider>().loadExams(),
+      context.read<PortfolioProvider>().loadPortfolio(),
     ]);
   }
 }
@@ -121,7 +124,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = [
     HomeScreen(),
     ScheduleScreen(),
-    EventsScreen(),
+    ShowcaseScreen(),
     ProfileScreen(),
   ];
 
@@ -157,8 +160,8 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.grid_view_outlined),
-              activeIcon: Icon(Icons.grid_view),
-              label: 'мероприятия',
+              activeIcon: Icon(Icons.grid_view_rounded),
+              label: 'витрина',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outlined),

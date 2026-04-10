@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
-import '../../core/themes.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/student_provider.dart';
-import '../screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -52,18 +50,36 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const SizedBox(height: 80),
-              Text(
-                'Система студенческого профиля',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
+              const SizedBox(height: 48),
+              Image.asset(
+                'assets/images/app_icon.png',
+                width: 88,
+                height: 88,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.school_rounded,
+                  size: 72,
+                  color: AppConstants.primaryColor,
                 ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                AppConstants.appName,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Вход в личный кабинет студента',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 36),
               // Форма входа
               Form(
                 key: _formKey,
@@ -125,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _rememberMe = value ?? false;
                             });
                           },
-                          activeColor: Colors.blue,
+                          activeColor: AppConstants.primaryColor,
                         ),
                         Text(
                           'Запомнить меня',
@@ -141,32 +157,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: AppConstants.buttonHeight,
-                      child: ElevatedButton(
+                      child: FilledButton(
                         onPressed: authProvider.isLoading ? null : () => _login(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                          ),
-                          elevation: 2,
-                        ),
                         child: authProvider.isLoading
                             ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                            : const Text(
-                          'Войти в систему',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black87,
+                                ),
+                              )
+                            : const Text('Войти'),
                       ),
                     ),
 
@@ -214,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.05),
+                        color: AppConstants.primaryColor.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -224,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Text(
                                 'Логин: ${AppConstants.demoLogin}',
-                                style: const TextStyle(color: Colors.blue),
+                                style: TextStyle(color: AppConstants.primaryColor),
                               ),
                             ],
                           ),
@@ -234,19 +236,39 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Text(
                                 'Пароль: ${AppConstants.demoPassword}',
-                                style: const TextStyle(color: Colors.blue),
+                                style: TextStyle(color: AppConstants.primaryColor),
                               ),
                             ],
                           ),
+                          if (AppConstants.offlineDemoEnabled) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              'Без сети: при недоступности сервера те же учётные данные откроют демо (офлайн).',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[700],
+                                  ),
+                            ),
+                          ],
                         ],
                       ),
+                    ),
+
+                    const SizedBox(height: 8),
+                    Text(
+                      'API: ${AppConstants.integrationBaseUrl}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[500],
+                            fontSize: 11,
+                          ),
                     ),
 
                     const SizedBox(height: 20),
 
                     // Информация о приложении
                     Text(
-                      'v.1.1.1 | TSPUT profile',
+                      'v1.0.0 | ТГПУ профиль',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey[500],
                       ),
@@ -302,7 +324,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
+              borderSide: BorderSide(color: AppConstants.primaryColor, width: 2),
             ),
             filled: true,
             fillColor: Colors.white,
@@ -328,14 +350,6 @@ class _LoginScreenState extends State<LoginScreen> {
       // Загружаем данные студента
       final studentProvider = context.read<StudentProvider>();
       await studentProvider.loadStudentData();
-
-      // Переходим на главный экран
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomeScreen(),
-        ),
-      );
 
       widget.onLoginSuccess?.call();
     }

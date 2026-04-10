@@ -1,11 +1,11 @@
 {
-    "name": "tsput_profile",
-    "short_name": "tsput_profile",
+    "name": "ТГПУ профиль",
+    "short_name": "ТГПУ профиль",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "This project for TSPUT student",
+    "description": "Мобильное приложение для студентов ТГПУ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

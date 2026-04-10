@@ -1,16 +1,13 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import '../../core/auth/secure_storage.dart';
 import '../models/schedule.dart';
+import '../services/api_service.dart';
 
 class ScheduleRepository {
+  final ApiService _apiService = ApiService();
+
   Future<List<Schedule>> getSchedule() async {
-    // В реальном приложении здесь будет запрос к API
-    await Future.delayed(Duration(milliseconds: 500));
-
-    // Загрузка из локального JSON
-    final jsonString = await rootBundle.loadString('assets/data/schedule.json');
-    final jsonList = json.decode(jsonString) as List;
-
+    final token = await SecureStorage.getAuthToken() ?? '';
+    final jsonList = await _apiService.fetchSchedule(token);
     return jsonList.map((json) => Schedule.fromJson(json)).toList();
   }
 

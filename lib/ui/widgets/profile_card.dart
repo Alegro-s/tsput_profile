@@ -28,7 +28,14 @@ class ProfileCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF3EC9C0),
+            Color(0xFF1F8A82),
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

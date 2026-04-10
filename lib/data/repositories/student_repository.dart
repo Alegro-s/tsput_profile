@@ -1,14 +1,13 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import '../../core/auth/secure_storage.dart';
 import '../models/student.dart';
+import '../services/api_service.dart';
 
 class StudentRepository {
+  final ApiService _apiService = ApiService();
+
   Future<Student> getStudentData() async {
-    await Future.delayed(Duration(milliseconds: 500));
-
-    final jsonString = await rootBundle.loadString('assets/data/student.json');
-    final jsonData = json.decode(jsonString);
-
+    final token = await SecureStorage.getAuthToken() ?? '';
+    final jsonData = await _apiService.fetchStudentData(token);
     return Student.fromJson(jsonData);
   }
 

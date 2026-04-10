@@ -1,16 +1,13 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import '../../core/auth/secure_storage.dart';
 import '../models/grade.dart';
+import '../services/api_service.dart';
 
 class GradesRepository {
+  final ApiService _apiService = ApiService();
+
   Future<List<Grade>> getGrades() async {
-    // В реальном приложении здесь будет запрос к API
-    await Future.delayed(Duration(milliseconds: 500));
-
-    // Загрузка из локального JSON
-    final jsonString = await rootBundle.loadString('assets/data/grades.json');
-    final jsonList = json.decode(jsonString) as List;
-
+    final token = await SecureStorage.getAuthToken() ?? '';
+    final jsonList = await _apiService.fetchGrades(token);
     return jsonList.map((json) => Grade.fromJson(json)).toList();
   }
 

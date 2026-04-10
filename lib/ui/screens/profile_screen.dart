@@ -21,11 +21,9 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Профиль'),
-        foregroundColor: Colors.white,
         actions: [
-          // Используем IconButton вместо PopupMenuButton для лучшей кликабельности
           IconButton(
-            icon: Icon(Icons.more_vert, color: Colors.white),
+            icon: Icon(Icons.more_vert),
             onPressed: () {
               _showSettingsMenu(context);
             },
@@ -107,6 +105,18 @@ class ProfileScreen extends StatelessWidget {
               value: student.address,
               icon: Icons.location_on_outlined,
             ),
+            if (student.additionalInfo['city'] != null)
+              _buildInfoCard(
+                title: 'Город',
+                value: student.additionalInfo['city'].toString(),
+                icon: Icons.location_city_outlined,
+              ),
+            if (student.additionalInfo['timezone'] != null)
+              _buildInfoCard(
+                title: 'Часовой пояс',
+                value: student.additionalInfo['timezone'].toString(),
+                icon: Icons.schedule,
+              ),
 
             SizedBox(height: 20),
 
@@ -121,6 +131,37 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             SizedBox(height: 16),
+
+            if (student.additionalInfo['birthDate'] != null)
+              _buildInfoCard(
+                title: 'Дата рождения',
+                value: student.additionalInfo['birthDate'].toString(),
+                icon: Icons.cake_outlined,
+              ),
+            if (student.additionalInfo['studentStatus'] != null)
+              _buildInfoCard(
+                title: 'Статус обучающегося',
+                value: student.additionalInfo['studentStatus'].toString(),
+                icon: Icons.verified_user_outlined,
+              ),
+            if (student.additionalInfo['trainingLevel'] != null)
+              _buildInfoCard(
+                title: 'Уровень подготовки',
+                value: student.additionalInfo['trainingLevel'].toString(),
+                icon: Icons.workspace_premium_outlined,
+              ),
+            if (student.additionalInfo['profile'] != null)
+              _buildInfoCard(
+                title: 'Профиль',
+                value: student.additionalInfo['profile'].toString(),
+                icon: Icons.account_tree_outlined,
+              ),
+            if (student.additionalInfo['recordBook'] != null)
+              _buildInfoCard(
+                title: 'Номер зачетной книжки',
+                value: student.additionalInfo['recordBook'].toString(),
+                icon: Icons.badge_outlined,
+              ),
 
             Row(
               children: [
