@@ -18,12 +18,14 @@ import 'core/providers/exams_provider.dart';
 import 'core/providers/portfolio_provider.dart';
 import 'core/providers/partner_services_provider.dart';
 import 'core/providers/main_nav_provider.dart';
+import 'core/integration_runtime.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ru_RU', null);
+  await IntegrationRuntime.loadFromPrefs();
 
   runApp(MyApp());
 }
