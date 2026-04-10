@@ -9,8 +9,8 @@ services:
       POSTGRES_DB: tsput_profile
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Порт 5432 с хоста не пробрасываем: API ходит в БД по сети Docker (db:5432).
+    # Так не конфликтует с другим PostgreSQL на сервере и безопаснее.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tsput -d tsput_profile"]
       interval: 5s
