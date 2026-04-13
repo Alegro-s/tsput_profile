@@ -2,7 +2,7 @@
 
 ## Что поднимается
 
-- **api** — FastAPI на порту `8080`
+- **api** — FastAPI (в контейнере `:8080`; на хост пробрасывается через `docker-compose.publish-8080.yml` или `docker-compose.bind-local-api.yml`)
 - **db** — PostgreSQL 16 (данные API пока в коде; БД зарезервирована под уведомления и кэш)
 - **nginx** (профиль `web`) — отдаёт Flutter Web и проксирует `/api` на backend
 
@@ -13,7 +13,7 @@
 3. В корне проекта:
 
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
 ```
 
 Проверка: `curl http://localhost:8080/health`
@@ -39,7 +39,7 @@ rm -rf TulaTravelv1.2   # только если бэкап не нужен
 cd ~
 git clone <URL_вашего_репозитория> tsput_profile
 cd tsput_profile
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
 ```
 
 Проверка снаружи (подставь свой IP):
@@ -76,10 +76,10 @@ INTEGRATION_BASE_URL=http://72.56.244.26
 ```bash
 # из каталога с проектом
 scp -r . USER@HOST:~/tsput_profile
-ssh USER@HOST "cd ~/tsput_profile && docker compose up -d --build"
+ssh USER@HOST "cd ~/tsput_profile && docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build"
 ```
 
-Или через git: `git clone` на сервере и `docker compose up -d --build`.
+Или через git: `git clone` на сервере и `docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build`.
 
 ## Flutter: онлайн к твоему API
 

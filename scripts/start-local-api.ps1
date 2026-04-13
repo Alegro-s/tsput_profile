@@ -5,8 +5,8 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $root
 
-Write-Host 'Starting Docker stack (api :8080, db :5432)...' -ForegroundColor Cyan
-docker compose up -d --build
+Write-Host 'Starting Docker stack (api on host :8080, db internal)...' -ForegroundColor Cyan
+docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
 
 Write-Host ''
 Write-Host 'Health: http://127.0.0.1:8080/health' -ForegroundColor Green

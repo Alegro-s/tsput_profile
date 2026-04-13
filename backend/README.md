@@ -8,7 +8,7 @@
 Из **корня репозитория** (не из `backend/`):
 
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
 ```
 
 API: `http://localhost:8080/health`
@@ -30,7 +30,7 @@ API: `http://localhost:8080/health`
 
 **Что сделать:** откройте этот файл и замените `password123` на **ваш пароль от Moodle**. Подробно по шагам — файл **`backend/КАК_ВОЙТИ.txt`**.
 
-Docker-образ копирует `local_users.json` внутрь контейнера (`Dockerfile`), после правки выполните `docker compose up -d --build`.
+Docker-образ копирует `local_users.json` внутрь контейнера (`Dockerfile`), после правки выполните `docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build`.
 
 Полная инструкция (nginx, MAX, деплой): см. `deploy/README.md`.
 

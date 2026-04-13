@@ -13,7 +13,7 @@
    - или ФИО (как в списке)
 
 4. Перезапустите бэкенд:
-   - Docker: в корне проекта  docker compose up -d --build
+   - Docker: в корне проекта  docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
    - Или uvicorn из папки backend
 
 5. В приложении введите один из identifiers и ваш пароль (тот же, что в JSON).

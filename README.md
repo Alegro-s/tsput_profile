@@ -1,6 +1,6 @@
 Проект представляет собой мобильное приложение, разработанное на Flutter. Приложение предназначено для студентов и содержит функционал просмотра расписания, оценок, экзаменов, портфолио и профиля пользователя. Реализована авторизация через API, демо-вход **офлайн** (без сервера), интеграционный **backend в Docker** и сборка **Flutter Web для MAX Mini App**.
 
-- **Docker:** `docker compose up -d --build` (см. `deploy/README.md`).
+- **Docker:** `docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build` (см. `deploy/README.md`).
 - **Сборка с API:** `flutter run --dart-define=INTEGRATION_BASE_URL=http://СЕРВЕР:8080`.
 - **MAX Web:** `scripts/build_web_for_max.sh` / `.ps1`, см. `max_miniapp/README.md`.
 

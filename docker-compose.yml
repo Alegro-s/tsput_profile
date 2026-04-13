@@ -1,4 +1,6 @@
-# Запуск: docker compose up -d --build
+# API по умолчанию без порта на хост (только сеть Docker). Проброс:
+#   docker compose -f docker-compose.yml -f docker-compose.publish-8080.yml up -d --build
+# Рядом с NEXUS (:8080 занят): docker-compose.bind-local-api.yml — см. deploy/README.md
 # С фронтом (Flutter Web для MAX): см. deploy/README.md — профиль web
 services:
   db:
@@ -31,8 +33,6 @@ services:
       MOODLE_EMAIL: ${MOODLE_EMAIL:-}
       STUDENT_FULL_NAME: ${STUDENT_FULL_NAME:-}
       MOODLE_PASSWORD: ${MOODLE_PASSWORD:-}
-    ports:
-      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
