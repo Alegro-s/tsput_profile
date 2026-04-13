@@ -20,7 +20,7 @@ class ScheduleList extends StatelessWidget {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(color: AppConstants.terracotta),
+          child: CircularProgressIndicator(color: AppConstants.blockBlack),
         ),
       );
     }
@@ -161,7 +161,7 @@ class ScheduleList extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Icon(PhosphorIconsRegular.caretRight, color: AppConstants.terracottaMuted, size: 18),
+                    Icon(PhosphorIconsRegular.caretRight, color: AppConstants.onBlockSecondary, size: 18),
                   ],
                 ),
               ],
@@ -175,11 +175,11 @@ class ScheduleList extends StatelessWidget {
   Color _getTypeColor(String type) {
     switch (type.toLowerCase()) {
       case 'лекция':
-        return AppConstants.terracotta;
+        return const Color(0xFF3D3D3D);
       case 'практика':
-        return AppConstants.terracottaDark;
+        return const Color(0xFF525252);
       case 'лабораторная':
-        return const Color(0xFF8B4A3C);
+        return const Color(0xFF666666);
       default:
         return AppConstants.secondaryColor;
     }

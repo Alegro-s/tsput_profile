@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants.dart';
@@ -13,28 +12,15 @@ import '../widgets/schedule_card.dart';
 import '../widgets/stats_switcher.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConstants.surfaceWhite,
-      appBar: AppBar(
-        title: const Text('Главная'),
-        actions: [
-          IconButton(
-            icon: Icon(PhosphorIconsRegular.bell, color: AppConstants.blockBlack),
-            tooltip: 'Уведомления',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Центр уведомлений появится после подключения push.'),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Главная')),
       body: RefreshIndicator(
-        color: AppConstants.terracotta,
+        color: AppConstants.blockBlack,
         onRefresh: () async {
           await Future.wait([
             context.read<StudentProvider>().loadStudentData(),
@@ -60,9 +46,9 @@ class HomeScreen extends StatelessWidget {
                   ]);
                 },
               ),
-              const SizedBox(height: 28),
-              StatsSwitcher(),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
+              const StatsSwitcher(),
+              const SizedBox(height: 22),
               Text(
                 'Расписание на сегодня',
                 style: TextStyle(

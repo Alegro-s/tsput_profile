@@ -63,28 +63,7 @@ class ApiService {
     return _getList('$_base${AppConstants.portfolioEndpoint}', token: token);
   }
 
-  Future<List<dynamic>> fetchPartnerServices(String token) async {
-    return _getList('$_base${AppConstants.partnerServicesEndpoint}', token: token);
-  }
-
-  Future<void> scanPartnerQr(String token, String raw) async {
-    final url = '$_base${AppConstants.partnerScanEndpoint}';
-    final response = await _client
-        .post(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({'raw': raw}),
-        )
-        .timeout(_timeout);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException('Ошибка регистрации QR (${response.statusCode})');
-    }
-  }
-
-  Future<void> syncWith1C() async {
+  Future<void> syncWithBackend() async {
     final url = '$_base${AppConstants.syncEndpoint}';
     await _client
         .post(

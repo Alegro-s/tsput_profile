@@ -16,16 +16,13 @@ import 'core/providers/events_provider.dart';
 import 'core/providers/grades_provider.dart';
 import 'core/providers/exams_provider.dart';
 import 'core/providers/portfolio_provider.dart';
-import 'core/providers/partner_services_provider.dart';
 import 'core/providers/main_nav_provider.dart';
-import 'core/integration_runtime.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ru_RU', null);
-  await IntegrationRuntime.loadFromPrefs();
 
   runApp(MyApp());
 }
@@ -44,7 +41,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GradesProvider()),
         ChangeNotifierProvider(create: (_) => ExamsProvider()),
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
-        ChangeNotifierProvider(create: (_) => PartnerServicesProvider()),
         ChangeNotifierProvider(create: (_) => MainNavProvider()),
       ],
       child: MaterialApp(
@@ -114,7 +110,6 @@ class AuthWrapper extends StatelessWidget {
       context.read<GradesProvider>().loadGrades(),
       context.read<ExamsProvider>().loadExams(),
       context.read<PortfolioProvider>().loadPortfolio(),
-      context.read<PartnerServicesProvider>().loadServices(),
     ]);
   }
 }
@@ -123,9 +118,9 @@ class MainNavigation extends StatelessWidget {
   const MainNavigation({super.key});
 
   static final List<Widget> _screens = [
-    HomeScreen(),
+    const HomeScreen(),
     const ScheduleScreen(),
-    ShowcaseScreen(),
+    const ShowcaseScreen(),
     const ProfileScreen(),
   ];
 

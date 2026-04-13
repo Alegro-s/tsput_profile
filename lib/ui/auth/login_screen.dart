@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
-import '../../core/integration_runtime.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/student_provider.dart';
 
@@ -53,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 errorBuilder: (context, error, stackTrace) => Icon(
                   PhosphorIconsRegular.graduationCap,
                   size: 72,
-                  color: AppConstants.terracotta,
+                  color: AppConstants.blockBlack,
                 ),
               ),
               const SizedBox(height: 20),
@@ -67,63 +66,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Вход по данным электронного обучения (Moodle)',
+                'Вход в личный профиль студента',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppConstants.secondaryColor,
                     ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 16),
-              Material(
-                color: AppConstants.surfaceMuted,
-                borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                child: InkWell(
-                  onTap: () => _showServerUrlDialog(context),
-                  borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Row(
-                      children: [
-                        Icon(PhosphorIconsRegular.globe, color: AppConstants.terracotta, size: 22),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Адрес сервера API',
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                AppConstants.integrationBaseUrl,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppConstants.secondaryColor,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(PhosphorIconsRegular.caretRight, color: AppConstants.secondaryColor, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  'Если «нет подключения» — нажмите сюда и введите http://72.56.244.26:8080 (ваш VPS, порт API).',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, height: 1.35, color: AppConstants.secondaryColor),
-                ),
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               // Форма входа
               Form(
                 key: _formKey,
@@ -134,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       controller: _loginController,
                       label: 'Логин',
-                      hintText: 'ID в Moodle, почта или ФИО',
+                      hintText: 'Логин, почта или ФИО',
                       prefixIcon: PhosphorIconsRegular.user,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -151,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       controller: _passwordController,
                       label: 'Пароль',
-                      hintText: 'Пароль от Moodle',
+                      hintText: 'Пароль',
                       prefixIcon: PhosphorIconsRegular.lock,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
@@ -309,76 +259,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ],
     );
-  }
-
-  Future<void> _showServerUrlDialog(BuildContext context) async {
-    final controller = TextEditingController(text: AppConstants.integrationBaseUrl);
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Адрес сервера'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Без этого телефон не достучится до VPS. Пример:',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 6),
-            SelectableText(
-              'http://72.56.244.26:8080',
-              style: TextStyle(fontWeight: FontWeight.w600, color: AppConstants.terracottaDark),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'URL',
-                hintText: 'http://IP:8080',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.url,
-              autocorrect: false,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await IntegrationRuntime.saveServerUrlOverride('');
-              if (ctx.mounted) Navigator.pop(ctx, true);
-            },
-            child: const Text('Сброс'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final u = controller.text.trim();
-              if (!u.startsWith('http://') && !u.startsWith('https://')) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Адрес должен начинаться с http:// или https://')),
-                );
-                return;
-              }
-              await IntegrationRuntime.saveServerUrlOverride(u);
-              if (ctx.mounted) Navigator.pop(ctx, true);
-            },
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (saved == true && mounted) {
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Сервер: ${AppConstants.integrationBaseUrl}')),
-      );
-    }
   }
 
   Future<void> _login(BuildContext context) async {

@@ -1,4 +1,3 @@
-/// Категории портфолио в духе веб-кабинета (кнопки ведут в 1С; в приложении — заглушка до API).
 class PortfolioPedagogySections {
   PortfolioPedagogySections._();
 

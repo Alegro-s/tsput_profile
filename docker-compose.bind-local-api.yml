@@ -1,0 +1,10 @@
+# Рядом с NEXUS (API Lynx на :8080): слушать FastAPI только на localhost:8081 для system nginx.
+# Запуск:
+#   docker compose -f docker-compose.yml -f docker-compose.bind-local-api.yml up -d --build
+#
+# Статику Flutter Web кладите в /srv/waypointclub/web (см. NEXUS/docs/NGINX_PROD_3_SITES_1_APP.conf).
+
+services:
+  api:
+    ports:
+      - "127.0.0.1:8081:8080"

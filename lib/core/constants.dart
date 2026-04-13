@@ -5,20 +5,17 @@ import 'integration_runtime.dart';
 class AppConstants {
   static const String appName = 'ТГПУ профиль';
 
-  /// Базовый URL бэкенда. Задаётся через `--dart-define=INTEGRATION_BASE_URL=...` или платформенный умолчание (см. [IntegrationRuntime]).
   static String get integrationBaseUrl => IntegrationRuntime.baseUrl;
 
   static const String portalRegisterUrl = 'https://tsput.ru';
   static const String portalStudyUrl = 'https://study.tsput.ru';
+  static const String loyaltyTelegramBotUrl = 'https://t.me/tsputloyalty_bot';
 
   static const String authTokenKey = 'auth_token';
   static const String userLoginKey = 'user_login';
   static const String userPasswordKey = 'user_password';
   static const String biometricEnabledKey = 'biometric_enabled';
-
-  static String get oneCBaseUrl => integrationBaseUrl;
-  static String get moodleBaseUrl => integrationBaseUrl;
-  static String get portalBaseUrl => integrationBaseUrl;
+  static const String loyaltyLinkedEmailPrefKey = 'loyalty_linked_email';
   static const String loginEndpoint = '/api/auth/login';
   static const String syncEndpoint = '/api/sync';
   static const String studentEndpoint = '/api/student';
@@ -26,10 +23,6 @@ class AppConstants {
   static const String gradesEndpoint = '/api/grades';
   static const String examsEndpoint = '/api/exams';
   static const String portfolioEndpoint = '/api/portfolio';
-  static const String partnerServicesEndpoint = '/api/partner-services';
-  static const String partnerScanEndpoint = '/api/partner-services/scan';
-  static const String moodleLabsEndpoint = '/webservice/rest/server.php';
-
   static const Color surfaceWhite = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF5F5F4);
   static const Color blockBlack = Color(0xFF121212);
@@ -47,8 +40,8 @@ class AppConstants {
   static const double buttonHeight = 52.0;
 
   static const Color backgroundColor = surfaceWhite;
-  static const Color primaryColor = terracotta;
-  static const Color primaryDark = terracottaDark;
+  static const Color primaryColor = blockBlack;
+  static const Color primaryDark = blockBlackElevated;
   static const Color secondaryColor = Color(0xFF6B6B66);
   static const Color accentYellow = terracotta;
   static const Color accentOrange = terracottaDark;

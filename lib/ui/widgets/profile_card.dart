@@ -22,13 +22,17 @@ class ProfileCard extends StatelessWidget {
 
     if (student == null) {
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppConstants.surfaceMuted,
           borderRadius: BorderRadius.circular(AppConstants.cardRadius),
         ),
         child: const Center(
-          child: CircularProgressIndicator(color: AppConstants.terracotta),
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(color: AppConstants.blockBlack, strokeWidth: 2),
+          ),
         ),
       );
     }
@@ -36,62 +40,61 @@ class ProfileCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppConstants.blockBlack,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+      padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
+            radius: 24,
             backgroundColor: AppConstants.blockBlackElevated,
             backgroundImage:
                 student.avatarUrl != null ? NetworkImage(student.avatarUrl!) : null,
             child: student.avatarUrl == null
-                ? Icon(PhosphorIconsRegular.user, size: 32, color: AppConstants.onBlockSecondary)
+                ? Icon(PhosphorIconsRegular.user, size: 24, color: AppConstants.onBlockSecondary)
                 : null,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   student.fullName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppConstants.onBlock,
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
+                    height: 1.2,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${student.group} · ${student.faculty}',
+                  '${student.group} · курс ${student.course}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppConstants.onBlockSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Курс ${student.course}',
-                  style: const TextStyle(
-                    color: AppConstants.onBlockSecondary,
-                    fontSize: 14,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          Column(
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (onSettingsPressed != null)
                 IconButton(
-                  icon: Icon(PhosphorIconsRegular.gear, color: AppConstants.onBlock),
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(PhosphorIconsRegular.gear, color: AppConstants.onBlock, size: 22),
                   onPressed: onSettingsPressed,
                 ),
               IconButton(
-                icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: AppConstants.onBlock),
+                visualDensity: VisualDensity.compact,
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: AppConstants.onBlock, size: 22),
                 onPressed: onRefreshPressed ?? () => studentProvider.loadStudentData(),
               ),
             ],

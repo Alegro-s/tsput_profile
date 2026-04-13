@@ -5,11 +5,9 @@ class Grade {
   final int value;
   final String type;
   final DateTime date;
-  /// 1…8 — как в веб-кабинете; если null, можно оценить по дате на клиенте.
   final int? semester;
   final int? zet;
   final int? hours;
-  /// Текст вроде «Зачтено», «Хорошо» (1С); если null — показываем [value].
   final String? gradeLabel;
 
   Grade({

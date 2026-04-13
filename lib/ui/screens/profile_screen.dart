@@ -1,173 +1,424 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants.dart';
 import '../../core/providers/main_nav_provider.dart';
-import '../../core/providers/portfolio_provider.dart';
 import '../../core/providers/student_provider.dart';
-import '../../data/portfolio_pedagogy_sections.dart';
-import '../widgets/profile_card.dart';
-import '../widgets/sheet_handle.dart';
+import '../../data/models/student.dart';
+import '../widgets/app_logout.dart';
+import '../widgets/app_settings_sheet.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final nav = context.watch<MainNavProvider>();
-    if (nav.shouldOpenPortfolioTab) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _tabController.animateTo(1);
-        context.read<MainNavProvider>().clearPortfolioTabRequest();
-      });
-    }
-
     final studentProvider = context.watch<StudentProvider>();
     final student = studentProvider.student;
 
     if (student == null) {
       return Scaffold(
+        backgroundColor: AppConstants.surfaceWhite,
         appBar: AppBar(title: const Text('Профиль')),
-        body: const Center(child: CircularProgressIndicator(color: AppConstants.terracotta)),
+        body: const Center(child: CircularProgressIndicator(color: AppConstants.blockBlack)),
       );
     }
 
+    final tiles = _profileTiles(student);
+
     return Scaffold(
       backgroundColor: AppConstants.surfaceWhite,
-      appBar: AppBar(
-        title: const Text('Личный кабинет'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppConstants.terracotta,
-          unselectedLabelColor: AppConstants.secondaryColor,
-          indicatorColor: AppConstants.terracotta,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-          tabs: const [
-            Tab(text: 'Данные студента'),
-            Tab(text: 'Портфолио'),
+      body: RefreshIndicator(
+        color: AppConstants.terracotta,
+        onRefresh: () => studentProvider.loadStudentData(),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: _ProfileHeader(student: student)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => showAppSettingsSheet(context),
+                      icon: const Icon(PhosphorIconsRegular.gear, color: AppConstants.blockBlack),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => studentProvider.loadStudentData(),
+                      icon: const Icon(PhosphorIconsRegular.arrowsClockwise, color: AppConstants.blockBlack),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _PromoBanner(onTap: () => _openUrl(AppConstants.portalRegisterUrl)),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Сервисы',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppConstants.secondaryColor,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _ServiceChipsRow(
+                      onSchedule: () => context.read<MainNavProvider>().setTab(1),
+                      onShowcase: () => context.read<MainNavProvider>().setTab(2),
+                      onHome: () => context.read<MainNavProvider>().setTab(0),
+                      onSite: () => _openUrl(AppConstants.portalRegisterUrl),
+                      onStudy: () => _openUrl(AppConstants.portalStudyUrl),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(bottom: 8),
+                    title: const Text(
+                      'Мои данные',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppConstants.blockBlack,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Контакты, зачётка, стипендия',
+                      style: TextStyle(fontSize: 12, color: AppConstants.secondaryColor),
+                    ),
+                    children: [
+                      LayoutBuilder(
+                        builder: (context, c) {
+                          const gap = 12.0;
+                          final w = (c.maxWidth - gap) / 2;
+                          return Wrap(
+                            spacing: gap,
+                            runSpacing: gap,
+                            children: [
+                              for (final t in tiles)
+                                SizedBox(
+                                  width: w,
+                                  child: _FieldCard(label: t.$1, value: t.$2),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
+                child: OutlinedButton(
+                  onPressed: () => showLogoutConfirmDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFB91C1C),
+                    side: const BorderSide(color: Color(0x33B91C1C)),
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Выйти из аккаунта', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _StudentDataTab(
-            onRefresh: () => studentProvider.loadStudentData(),
-          ),
-          const _PortfolioPedagogyTab(),
-        ],
       ),
     );
   }
 }
 
-class _StudentDataTab extends StatelessWidget {
-  const _StudentDataTab({required this.onRefresh});
+List<(String, String)> _profileTiles(Student student) {
+  final info = student.additionalInfo;
+  return [
+    ('ФИО', student.fullName),
+    ('Группа', student.group),
+    ('Институт', student.faculty),
+    ('Специальность', student.specialty),
+    ('Курс', '${student.course}'),
+    ('Почта', student.email),
+    ('Телефон', student.phone),
+    ('Адрес', student.address),
+    if (info['recordBook'] != null) ('Зачётная книжка', info['recordBook'].toString()),
+    if (info['trainingLevel'] != null) ('Уровень подготовки', info['trainingLevel'].toString()),
+    if (info['profile'] != null) ('Профиль', info['profile'].toString()),
+    if (info['studentStatus'] != null) ('Статус', info['studentStatus'].toString()),
+    if (info['birthDate'] != null) ('Дата рождения', info['birthDate'].toString()),
+    (
+      'Поступление',
+      '${student.admissionDate.day.toString().padLeft(2, '0')}.${student.admissionDate.month.toString().padLeft(2, '0')}.${student.admissionDate.year}',
+    ),
+    (
+      'Выпуск',
+      '${student.graduationDate.day.toString().padLeft(2, '0')}.${student.graduationDate.month.toString().padLeft(2, '0')}.${student.graduationDate.year}',
+    ),
+    if (info['scholarship'] != null) ('Стипендия', '${info['scholarship']} ₽'),
+    if (info['dormitory'] != null) ('Общежитие', info['dormitory'].toString()),
+    if (info['averageGrade'] != null) ('Средний балл', info['averageGrade'].toString()),
+  ];
+}
 
-  final VoidCallback onRefresh;
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.student});
+
+  final Student student;
 
   @override
   Widget build(BuildContext context) {
-    final student = context.watch<StudentProvider>().student!;
-    final info = student.additionalInfo;
-
-    final tiles = <(String, String)>[
-      ('ФИО', student.fullName),
-      ('Группа', student.group),
-      ('Институт', student.faculty),
-      ('Специальность', student.specialty),
-      ('Курс', '${student.course}'),
-      ('Email', student.email),
-      ('Телефон', student.phone),
-      ('Адрес', student.address),
-      if (info['recordBook'] != null) ('Зачётная книжка', info['recordBook'].toString()),
-      if (info['trainingLevel'] != null) ('Уровень подготовки', info['trainingLevel'].toString()),
-      if (info['profile'] != null) ('Профиль', info['profile'].toString()),
-      if (info['studentStatus'] != null) ('Статус', info['studentStatus'].toString()),
-      if (info['birthDate'] != null) ('Дата рождения', info['birthDate'].toString()),
-      (
-        'Поступление',
-        '${student.admissionDate.day.toString().padLeft(2, '0')}.${student.admissionDate.month.toString().padLeft(2, '0')}.${student.admissionDate.year}',
-      ),
-      (
-        'Выпуск',
-        '${student.graduationDate.day.toString().padLeft(2, '0')}.${student.graduationDate.month.toString().padLeft(2, '0')}.${student.graduationDate.year}',
-      ),
-      if (info['scholarship'] != null) ('Стипендия', '${info['scholarship']} ₽'),
-      if (info['dormitory'] != null) ('Общежитие', info['dormitory'].toString()),
-      if (info['averageGrade'] != null) ('Средний балл', info['averageGrade'].toString()),
-    ];
-
-    return RefreshIndicator(
-      color: AppConstants.terracotta,
-      onRefresh: () async => onRefresh(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ProfileCard(
-              onSettingsPressed: null,
-              onRefreshPressed: onRefresh,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Сведения подгружаются из 1С и отображаются как в веб-кабинете.',
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.4,
-                color: AppConstants.secondaryColor,
+    return Column(
+      children: [
+        SizedBox(
+          height: 124,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppConstants.blockBlack,
+                      AppConstants.blockBlackElevated,
+                      Color(0xFF2C2C2C),
+                    ],
+                  ),
+                ),
               ),
+              SafeArea(
+                bottom: false,
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8, top: 4),
+                    child: Icon(
+                      PhosphorIconsRegular.graduationCap,
+                      size: 72,
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Transform.translate(
+          offset: const Offset(0, -44),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 48,
+                backgroundColor: AppConstants.surfaceWhite,
+                child: CircleAvatar(
+                  radius: 44,
+                  backgroundColor: AppConstants.surfaceMuted,
+                  backgroundImage: student.avatarUrl != null ? NetworkImage(student.avatarUrl!) : null,
+                  child: student.avatarUrl == null
+                      ? Icon(PhosphorIconsRegular.user, size: 44, color: AppConstants.secondaryColor)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  student.fullName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppConstants.blockBlack,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${student.group} · курс ${student.course}',
+                style: TextStyle(fontSize: 14, color: AppConstants.secondaryColor),
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  student.specialty,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, height: 1.35, color: AppConstants.secondaryColor),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppConstants.terracottaMuted,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+          decoration: const BoxDecoration(
+            border: Border(
+              left: BorderSide(color: AppConstants.terracotta, width: 4),
             ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, c) {
-                final gap = 12.0;
-                final w = (c.maxWidth - gap) / 2;
-                return Wrap(
-                  spacing: gap,
-                  runSpacing: gap,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final t in tiles)
-                      SizedBox(
-                        width: w,
-                        child: _PedaFieldCard(label: t.$1, value: t.$2),
+                    Text(
+                      'Стипендии и сервисы',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppConstants.terracottaDark,
+                        letterSpacing: 0.2,
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Новости университета, льготы и документы на портале',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppConstants.blockBlack,
+                        height: 1.3,
+                      ),
+                    ),
                   ],
-                );
-              },
-            ),
-          ],
+                ),
+              ),
+              Icon(PhosphorIconsRegular.caretRight, color: AppConstants.terracottaDark, size: 22),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _PedaFieldCard extends StatelessWidget {
-  const _PedaFieldCard({required this.label, required this.value});
+class _ServiceChipsRow extends StatelessWidget {
+  const _ServiceChipsRow({
+    required this.onSchedule,
+    required this.onShowcase,
+    required this.onHome,
+    required this.onSite,
+    required this.onStudy,
+  });
+
+  final VoidCallback onSchedule;
+  final VoidCallback onShowcase;
+  final VoidCallback onHome;
+  final VoidCallback onSite;
+  final VoidCallback onStudy;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <(IconData, String, VoidCallback)>[
+      (PhosphorIconsRegular.calendarBlank, 'Расписание', onSchedule),
+      (PhosphorIconsRegular.squaresFour, 'Витрина', onShowcase),
+      (PhosphorIconsRegular.house, 'Главная', onHome),
+      (PhosphorIconsRegular.globe, 'Сайт', onSite),
+      (PhosphorIconsRegular.graduationCap, 'Обучение', onStudy),
+    ];
+    return SizedBox(
+      height: 96,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, i) {
+          final it = items[i];
+          return SizedBox(
+            width: 76,
+            child: InkWell(
+              onTap: it.$3,
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppConstants.surfaceMuted,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppConstants.borderSubtle),
+                    ),
+                    child: Icon(it.$1, color: AppConstants.terracottaDark, size: 26),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    it.$2,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, height: 1.1),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FieldCard extends StatelessWidget {
+  const _FieldCard({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -204,178 +455,6 @@ class _PedaFieldCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PortfolioPedagogyTab extends StatelessWidget {
-  const _PortfolioPedagogyTab();
-
-  void _openCategory(BuildContext context, String section, String item) {
-    final portfolio = context.read<PortfolioProvider>();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final bottom = MediaQuery.of(ctx).padding.bottom;
-        final matches = portfolio.items
-            .where(
-              (p) =>
-                  p.category.toLowerCase().contains(item.toLowerCase()) ||
-                  p.title.toLowerCase().contains(item.toLowerCase()),
-            )
-            .toList();
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppConstants.surfaceWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.sheetTopRadius)),
-          ),
-          padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SheetGrabHandle(),
-              Text(
-                item,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppConstants.blockBlack),
-              ),
-              Text(
-                section,
-                style: TextStyle(fontSize: 13, color: AppConstants.secondaryColor),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Заполнение и согласование документов выполняются в личном кабинете вуза (источник — 1С). После выдачи API раздел откроет форму или глубокую ссылку.',
-                style: TextStyle(fontSize: 14, height: 1.45, color: AppConstants.secondaryColor),
-              ),
-              if (matches.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Text(
-                  'Уже есть записи с сервера:',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                ...matches.map(
-                  (p) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(p.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('${p.category} · ${p.status}', style: TextStyle(fontSize: 12, color: AppConstants.secondaryColor)),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Понятно'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final student = context.watch<StudentProvider>().student;
-
-    return RefreshIndicator(
-      color: AppConstants.terracotta,
-      onRefresh: () => context.read<PortfolioProvider>().loadPortfolio(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Моё портфолио',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppConstants.blockBlack,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Выберите раздел. Данные в приложении приходят из 1С; загрузка файлов — через кабинет на сайте до готовности API.',
-              style: TextStyle(fontSize: 13, height: 1.4, color: AppConstants.secondaryColor),
-            ),
-            if (student != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppConstants.surfaceMuted,
-                  borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                  border: Border.all(color: AppConstants.borderSubtle),
-                ),
-                child: Text(
-                  'Учебный план: ${student.group}. ${student.faculty}, ${student.specialty}',
-                  style: const TextStyle(fontSize: 13, height: 1.35, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-            const SizedBox(height: 20),
-            for (final row in PortfolioPedagogySections.rows) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  row.$1,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppConstants.blockBlack,
-                  ),
-                ),
-              ),
-              LayoutBuilder(
-                builder: (context, c) {
-                  const gap = 10.0;
-                  final w = (c.maxWidth - gap) / 2;
-                  return Wrap(
-                    spacing: gap,
-                    runSpacing: gap,
-                    children: [
-                      for (final item in row.$2)
-                        SizedBox(
-                          width: w,
-                          child: Material(
-                            color: AppConstants.surfaceWhite,
-                            borderRadius: BorderRadius.circular(12),
-                            child: InkWell(
-                              onTap: () => _openCategory(context, row.$1, item),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppConstants.borderSubtle),
-                                ),
-                                child: Text(
-                                  item,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.25,
-                                    color: AppConstants.blockBlack,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 18),
-            ],
-          ],
-        ),
       ),
     );
   }

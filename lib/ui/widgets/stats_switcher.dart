@@ -13,15 +13,16 @@ import '../../data/models/exam.dart';
 import 'sheet_handle.dart';
 
 class StatsSwitcher extends StatefulWidget {
+  const StatsSwitcher({super.key});
+
   @override
-  _StatsSwitcherState createState() => _StatsSwitcherState();
+  State<StatsSwitcher> createState() => _StatsSwitcherState();
 }
 
 class _StatsSwitcherState extends State<StatsSwitcher> {
   int _selectedTab = 0;
   final List<String> _tabs = ['Оценки', 'Сессия', 'Статистика'];
 
-  // Детальные окна
   void _showGradesDetails(BuildContext context, GradesProvider provider) {
     showModalBottomSheet(
       context: context,
@@ -68,7 +69,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Кнопки-вкладки
         Container(
           height: 40,
           child: ListView.builder(
@@ -107,7 +107,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
         ),
         SizedBox(height: 16),
 
-        // Контент в зависимости от выбранной вкладки
         Container(
           height: 150,
           child: _buildContent(gradesProvider, examsProvider, eventsProvider),
@@ -122,11 +121,11 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
       EventsProvider eventsProvider,
       ) {
     switch (_selectedTab) {
-      case 0: // Оценки
+      case 0:
         return _buildGradesTab(gradesProvider);
-      case 1: // Сессия
+      case 1:
         return _buildSessionTab(examsProvider);
-      case 2: // Статистика
+      case 2:
         return _buildStatsTab(gradesProvider, eventsProvider);
       default:
         return Container();
@@ -147,8 +146,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Средний балл',
               value: averageGrade.toStringAsFixed(2),
               subtitle: 'За все время',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -161,8 +160,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Всего предметов',
               value: grades.length.toString(),
               subtitle: 'Всего',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -184,8 +183,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Предстоящие',
               value: upcomingExams.length.toString(),
               subtitle: 'экзаменов',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -198,8 +197,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Сдано',
               value: completedExams.length.toString(),
               subtitle: 'экзаменов',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -211,7 +210,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
     final grades = gradesProvider.grades;
     final pastEvents = eventsProvider.pastEvents;
 
-    // Считаем лабораторные
     final labs = grades.where((g) => g.type.toLowerCase().contains('лабораторная')).toList();
     final passedLabs = labs.where((l) => l.value >= 3).length;
     final totalEventsPoints = pastEvents.fold(0, (sum, event) => sum + event.points);
@@ -226,8 +224,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Лабораторные',
               value: '$passedLabs/${labs.length}',
               subtitle: 'сдано/всего',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -240,8 +238,8 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
               title: 'Уведомления',
               value: totalEventsPoints.toString(),
               subtitle: 'баллы',
-              color: AppConstants.terracottaMuted,
-              textColor: AppConstants.terracottaDark,
+              color: AppConstants.surfaceMuted,
+              textColor: AppConstants.blockBlack,
             ),
           ),
         ),
@@ -329,13 +327,11 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
     );
   }
 
-  // ========== ДЕТАЛЬНЫЕ ОКНА ==========
-
   Widget _buildGradesDetails(GradesProvider provider) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.88,
-      minChildSize: 0.55,
-      maxChildSize: 0.96,
+      initialChildSize: 0.72,
+      minChildSize: 0.45,
+      maxChildSize: 0.92,
       expand: false,
       builder: (context, scrollController) {
         return Container(
@@ -378,7 +374,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppConstants.terracottaMuted,
+                        color: AppConstants.surfaceMuted,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppConstants.borderSubtle),
                       ),
@@ -388,7 +384,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: AppConstants.terracottaDark,
+                          color: AppConstants.blockBlack,
                           height: 1.2,
                         ),
                       ),
@@ -396,14 +392,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Источник: 1С. При полной интеграции колонки ЗЕТ и часы совпадут с веб-кабинетом.',
-                  style: TextStyle(fontSize: 12, color: AppConstants.secondaryColor),
-                ),
-              ),
-              const SizedBox(height: 12),
               if (provider.grades.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(32),
@@ -441,7 +429,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
           ),
           child: Column(
             children: [
-              // Шапка
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -459,16 +446,15 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                     ),
                     Row(
                       children: [
-                        _buildExamBadge('Осталось', upcomingExams.length, AppConstants.terracotta),
+                        _buildExamBadge('Осталось', upcomingExams.length, AppConstants.blockBlack),
                         SizedBox(width: 8),
-                        _buildExamBadge('Сдано', completedExams.length, AppConstants.terracottaDark),
+                        _buildExamBadge('Сдано', completedExams.length, AppConstants.secondaryColor),
                       ],
                     ),
                   ],
                 ),
               ),
 
-              // Контент
               Expanded(
                 child: ListView(
                   controller: scrollController,
@@ -532,19 +518,18 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
         color: AppConstants.surfaceWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCompleted ? AppConstants.terracottaMuted : AppConstants.borderSubtle,
+          color: isCompleted ? AppConstants.surfaceMuted : AppConstants.borderSubtle,
           width: 2,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Статус
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isCompleted ? AppConstants.terracottaDark : AppConstants.terracotta,
+              color: isCompleted ? AppConstants.blockBlack : AppConstants.secondaryColor,
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -557,7 +542,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
 
           SizedBox(width: 16),
 
-          // Информация
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -657,7 +641,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
     final grades = gradesProvider.grades;
     final pastEvents = eventsProvider.pastEvents;
 
-    // Лабораторные
     final labs = grades.where((g) => g.type.toLowerCase().contains('лабораторная')).toList();
     final passedLabs = labs.where((l) => l.value >= 3).length;
     final failedLabs = labs.where((l) => l.value < 3).toList();
@@ -675,7 +658,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
           ),
           child: Column(
             children: [
-              // Шапка
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -710,13 +692,11 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                 ),
               ),
 
-              // Контент
               Expanded(
                 child: ListView(
                   controller: scrollController,
                   padding: EdgeInsets.all(16),
                   children: [
-                    // Лабораторные
                     Container(
                       margin: EdgeInsets.only(bottom: 20),
                       child: Column(
@@ -732,7 +712,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                           SizedBox(height: 12),
 
                           if (labs.isNotEmpty) ...[
-                            // Прогресс бар
                             Container(
                               padding: EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -752,7 +731,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                                   LinearProgressIndicator(
                                     value: labs.isNotEmpty ? passedLabs / labs.length : 0,
                                     backgroundColor: AppConstants.borderSubtle,
-                                    color: AppConstants.terracotta,
+                                    color: AppConstants.blockBlack,
                                     minHeight: 8,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -761,7 +740,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                             ),
                             SizedBox(height: 16),
 
-                            // Список лабораторных
                             ...labs.map((lab) => _buildLabItem(lab)).toList(),
                           ] else ...[ Center(
                             child: Container(
@@ -787,7 +765,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                       ),
                     ),
 
-                    // Несданные лабораторные
                     if (failedLabs.isNotEmpty) ...[
                       Container(
                         margin: EdgeInsets.only(bottom: 20),
@@ -809,7 +786,6 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                       ),
                     ],
 
-                    // Бонусные баллы
                     if (pastEvents.isNotEmpty) ...[
                       Container(
                         margin: EdgeInsets.only(bottom: 20),
@@ -827,7 +803,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                             Container(
                               padding: EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppConstants.terracottaMuted,
+                                color: AppConstants.surfaceMuted,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(
@@ -845,7 +821,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
                                         '${pastEvents.fold(0, (sum, event) => sum + event.points)} баллов',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: AppConstants.terracottaDark,
+                                          color: AppConstants.blockBlack,
                                         ),
                                       ),
                                     ],
@@ -884,13 +860,13 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: lab.value >= 3 ? AppConstants.terracottaMuted : AppConstants.surfaceMuted,
+              color: lab.value >= 3 ? AppConstants.surfaceMuted : AppConstants.surfaceMuted,
               borderRadius: BorderRadius.circular(6),
             ),
             alignment: Alignment.center,
             child: Icon(
               lab.value >= 3 ? PhosphorIconsRegular.check : PhosphorIconsRegular.x,
-              color: lab.value >= 3 ? AppConstants.terracottaDark : AppConstants.terracotta,
+              color: lab.value >= 3 ? AppConstants.blockBlack : AppConstants.blockBlack,
               size: 16,
             ),
           ),
@@ -918,7 +894,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: lab.value >= 3 ? AppConstants.terracottaDark : AppConstants.terracotta,
+              color: lab.value >= 3 ? AppConstants.blockBlack : AppConstants.blockBlack,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -995,11 +971,11 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: AppConstants.terracottaMuted,
+              color: AppConstants.surfaceMuted,
               borderRadius: BorderRadius.circular(4),
             ),
             alignment: Alignment.center,
-            child: Icon(PhosphorIconsRegular.star, color: AppConstants.terracottaDark, size: 12),
+            child: Icon(PhosphorIconsRegular.star, color: AppConstants.blockBlack, size: 12),
           ),
           SizedBox(width: 8),
           Expanded(
@@ -1014,7 +990,7 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
           Text(
             '+${event.points}',
             style: const TextStyle(
-              color: AppConstants.terracottaDark,
+              color: AppConstants.blockBlack,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -1057,9 +1033,9 @@ class _StatsSwitcherState extends State<StatsSwitcher> {
   }
 
   Color _getGradeColor(int grade) {
-    if (grade >= 4) return AppConstants.terracottaDark;
-    if (grade == 3) return AppConstants.terracotta;
-    return const Color(0xFF8B4A3C);
+    if (grade >= 4) return AppConstants.blockBlack;
+    if (grade == 3) return const Color(0xFF5C5C5C);
+    return const Color(0xFF8E8E8E);
   }
 }
 
@@ -1136,7 +1112,7 @@ class _GradesPedagogyTableState extends State<_GradesPedagogyTable> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: semesters.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final s = semesters[i];
               final sel = _semester == s;
@@ -1144,56 +1120,68 @@ class _GradesPedagogyTableState extends State<_GradesPedagogyTable> {
                 selected: sel,
                 label: Text('$s семестр'),
                 onSelected: (_) => setState(() => _semester = s),
-                selectedColor: AppConstants.terracotta,
+                selectedColor: AppConstants.blockBlack,
                 checkmarkColor: AppConstants.surfaceWhite,
                 labelStyle: TextStyle(
                   color: sel ? AppConstants.surfaceWhite : AppConstants.blockBlack,
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
-                side: BorderSide(color: sel ? AppConstants.terracotta : AppConstants.borderSubtle),
+                side: BorderSide(color: sel ? AppConstants.blockBlack : AppConstants.borderSubtle),
               );
             },
           ),
         ),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: DataTable(
-                  headingRowColor: WidgetStateProperty.all(AppConstants.surfaceMuted),
-                  border: TableBorder.all(color: AppConstants.borderSubtle),
-                  columns: const [
-                    DataColumn(label: Text('#', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('Предмет', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('Вид контроля', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('Оценка', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('ЗЕТ', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('Часы', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                    DataColumn(label: Text('Дата', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12))),
-                  ],
-                  rows: [
-                    for (var i = 0; i < list.length; i++)
-                      DataRow(
-                        cells: [
-                          DataCell(Text('${i + 1}')),
-                          DataCell(SizedBox(width: 168, child: Text(list[i].subject, maxLines: 4))),
-                          DataCell(Text(list[i].type)),
-                          DataCell(Text(list[i].displayGrade)),
-                          DataCell(Text(list[i].zet?.toString() ?? '—')),
-                          DataCell(Text(list[i].hours?.toString() ?? '—')),
-                          DataCell(Text(DateFormat('dd.MM.yyyy').format(list[i].date))),
-                        ],
-                      ),
-                  ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Column(
+            children: [
+              for (final g in list)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppConstants.surfaceMuted,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppConstants.borderSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                g.subject,
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, height: 1.25),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              g.displayGrade,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: AppConstants.blockBlack,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${g.type} · ${g.zet != null ? '${g.zet} з.е.' : '—'} · ${g.hours != null ? '${g.hours} ч.' : '—'} · ${DateFormat('dd.MM.yy').format(g.date)}',
+                          style: TextStyle(fontSize: 11, color: AppConstants.secondaryColor, height: 1.35),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            );
-          },
+            ],
+          ),
         ),
       ],
     );

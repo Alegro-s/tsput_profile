@@ -47,15 +47,16 @@ void showScheduleDetailSheet(BuildContext context, Schedule item) {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppConstants.terracottaMuted,
+                        color: AppConstants.surfaceMuted,
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppConstants.borderSubtle),
                       ),
                       child: Text(
                         item.type,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppConstants.terracottaDark,
+                          color: AppConstants.blockBlack,
                         ),
                       ),
                     ),
@@ -85,29 +86,16 @@ void showScheduleDetailSheet(BuildContext context, Schedule item) {
                 if (item.additionalInfo != null && item.additionalInfo!.trim().isNotEmpty) ...[
                   const SizedBox(height: 8),
                   const Divider(height: 32),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(PhosphorIconsRegular.info, size: 22, color: AppConstants.terracotta),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          item.additionalInfo!,
-                          style: TextStyle(
-                            fontSize: 15,
-                            height: 1.45,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    item.additionalInfo!,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.45,
+                      color: Colors.grey[800],
+                    ),
                   ),
                 ],
-                const SizedBox(height: 16),
-                Text(
-                  'Идентификатор: ${item.id}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
+                const SizedBox(height: 8),
               ],
             ),
           );

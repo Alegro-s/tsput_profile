@@ -127,3 +127,21 @@ docker compose --profile web up -d --build
 ## TLS (HTTPS)
 
 Для MAX нужен валидный сертификат. Варианты: Caddy, Traefik, certbot + nginx — настрой на своём сервере отдельно; в этом репозитории только HTTP-конфиг nginx для примера.
+
+## Рядом с NEXUS / Lynx (один VPS, домен waypointclub.ru)
+
+Чтобы не занимать порт **8080** (там Rust API NEXUS), поднимайте только `api` + `db` с привязкой FastAPI к **127.0.0.1:8081**:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.bind-local-api.yml up -d --build
+```
+
+Системный nginx (шаблон в репозитории NEXUS: `docs/NGINX_PROD_3_SITES_1_APP.conf`) отдаёт статику из **`/srv/waypointclub/web`** и проксирует `/api/` на `8081`. Соберите Flutter Web и скопируйте `build/web/*` на сервер:
+
+```bash
+flutter build web --release --base-href / --dart-define=INTEGRATION_BASE_URL=https://waypointclub.ru
+sudo mkdir -p /srv/waypointclub/web
+sudo rsync -a build/web/ /srv/waypointclub/web/
+```
+
+TLS и ACME — вместе с остальными доменами Lynx (`scripts/lynx-vps-provision-public.sh` в NEXUS уже включает `waypointclub.ru`).
