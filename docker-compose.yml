@@ -29,14 +29,14 @@ services:
       DATABASE_URL: postgresql://tsput:tsput@db:5432/tsput_profile
       API_DEMO_LOGIN: student@university.ru
       API_DEMO_PASSWORD: password123
-      MOODLE_STUDENT_ID: ${MOODLE_STUDENT_ID:-}
-      MOODLE_EMAIL: ${MOODLE_EMAIL:-}
-      STUDENT_FULL_NAME: ${STUDENT_FULL_NAME:-}
+      MOODLE_STUDENT_ID: ${MOODLE_STUDENT_ID:-24807}
+      MOODLE_EMAIL: ${MOODLE_EMAIL:-lorm2053@gmail.com}
+      STUDENT_FULL_NAME: ${STUDENT_FULL_NAME:-Виноградов Игорь Денисович}
       MOODLE_PASSWORD: ${MOODLE_PASSWORD:-}
-      STUDENT_CARD_ID: ${STUDENT_CARD_ID:-}
-      STUDENT_CARD_FULL_NAME: ${STUDENT_CARD_FULL_NAME:-}
-      STUDENT_CARD_GROUP: ${STUDENT_CARD_GROUP:-}
-      STUDENT_CARD_EMAIL: ${STUDENT_CARD_EMAIL:-}
+      STUDENT_CARD_ID: ${STUDENT_CARD_ID:-24807}
+      STUDENT_CARD_FULL_NAME: ${STUDENT_CARD_FULL_NAME:-Виноградов Игорь Денисович}
+      STUDENT_CARD_GROUP: "${STUDENT_CARD_GROUP:-1521621 (МОИАИС)}"
+      STUDENT_CARD_EMAIL: ${STUDENT_CARD_EMAIL:-lorm2053@gmail.com}
     depends_on:
       db:
         condition: service_healthy

@@ -1,4 +1,4 @@
-"""Загрузка тестовых учёток из backend/local_users.json (не в git)."""
+"""Загрузка учёток из backend/local_users.json."""
 
 from __future__ import annotations
 
