@@ -5,7 +5,6 @@ import '../constants.dart';
 class SecureStorage {
   static final _storage = FlutterSecureStorage();
 
-  // Сохранение данных
   static Future<void> saveLoginData(String login, String password) async {
     await _storage.write(key: AppConstants.userLoginKey, value: login);
     await _storage.write(key: AppConstants.userPasswordKey, value: password);
@@ -22,7 +21,6 @@ class SecureStorage {
     );
   }
 
-  // Получение данных
   static Future<String?> getLogin() async {
     return await _storage.read(key: AppConstants.userLoginKey);
   }
@@ -40,7 +38,6 @@ class SecureStorage {
     return value == 'true';
   }
 
-  // Удаление данных
   static Future<void> clearAllData() async {
     await _storage.delete(key: AppConstants.userLoginKey);
     await _storage.delete(key: AppConstants.userPasswordKey);
@@ -52,7 +49,11 @@ class SecureStorage {
     await _storage.delete(key: AppConstants.authTokenKey);
   }
 
-  // Проверка сохраненных данных
+  static Future<void> clearSavedCredentials() async {
+    await _storage.delete(key: AppConstants.userLoginKey);
+    await _storage.delete(key: AppConstants.userPasswordKey);
+  }
+
   static Future<bool> hasSavedCredentials() async {
     final login = await getLogin();
     final password = await getPassword();

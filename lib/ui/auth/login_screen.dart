@@ -74,12 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               const SizedBox(height: 28),
-              // Форма входа
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Поле логина
                     _buildTextField(
                       context,
                       controller: _loginController,
@@ -96,7 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Поле пароля
                     _buildTextField(
                       context,
                       controller: _passwordController,
@@ -125,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Запомнить меня
                     Row(
                       children: [
                         Checkbox(
@@ -147,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Кнопка входа
                     SizedBox(
                       width: double.infinity,
                       height: AppConstants.buttonHeight,
@@ -166,7 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // Сообщение об ошибке
                     if (authProvider.error != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
@@ -274,7 +268,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      // Загружаем данные студента
       final studentProvider = context.read<StudentProvider>();
       await studentProvider.loadStudentData();
 

@@ -13,6 +13,5 @@ class StudentRepository {
 
   Future<void> updateStudentInfo(Map<String, dynamic> updates) async {
     await Future.delayed(Duration(seconds: 1));
-    print('Обновление данных студента: $updates');
   }
 }

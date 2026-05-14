@@ -30,7 +30,6 @@ def _bearer_token(authorization: str | None) -> str:
     return authorization.split(" ", 1)[1].strip()
 
 
-# Персональные услуги по QR (в проде — запись в БД / 1С по токену студента).
 _partner_services_by_token: dict[str, list[PartnerServiceItem]] = {}
 
 
@@ -367,6 +366,7 @@ def partner_services_list(authorization: str | None = Header(default=None)) -> l
 @app.get("/api/moodle/labs", response_model=list[LabItem])
 def moodle_labs(authorization: str | None = Header(default=None)) -> list[LabItem]:
     _require_auth(authorization)
+    now = datetime.now(UTC)
     return [
         LabItem(
             id="L1",
@@ -374,6 +374,34 @@ def moodle_labs(authorization: str | None = Header(default=None)) -> list[LabIte
             title="ЛР №3",
             status="Принято",
             teacherComment="Хорошая реализация, добавьте тесты.",
-            updatedAt=datetime.now(UTC) - timedelta(hours=6),
-        )
+            updatedAt=now - timedelta(hours=6),
+            deadline=now + timedelta(days=5),
+            workType="ЛР",
+            theme="Структуры данных",
+            score=5,
+        ),
+        LabItem(
+            id="L2",
+            course="Базы данных",
+            title="ЛР №2",
+            status="На проверке",
+            teacherComment=None,
+            updatedAt=now - timedelta(days=1),
+            deadline=now + timedelta(days=2),
+            workType="ЛР",
+            theme="Нормализация",
+            score=None,
+        ),
+        LabItem(
+            id="L3",
+            course="Веб-программирование",
+            title="КР — макет",
+            status="Требуются правки",
+            teacherComment="Проверьте адаптив и контраст.",
+            updatedAt=now - timedelta(hours=20),
+            deadline=now - timedelta(days=1),
+            workType="КР",
+            theme="Вёрстка landing",
+            score=2,
+        ),
     ]

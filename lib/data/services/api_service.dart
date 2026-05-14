@@ -63,6 +63,10 @@ class ApiService {
     return _getList('$_base${AppConstants.portfolioEndpoint}', token: token);
   }
 
+  Future<List<dynamic>> fetchMoodleLabs(String token) async {
+    return _getList('$_base${AppConstants.moodleLabsEndpoint}', token: token);
+  }
+
   Future<void> syncWithBackend() async {
     final url = '$_base${AppConstants.syncEndpoint}';
     await _client

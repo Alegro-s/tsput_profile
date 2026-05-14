@@ -7,7 +7,7 @@ class Exam {
   final String classroom;
   final int? grade;
   final bool isCompleted;
-  final String type; // добавляем
+  final String type;
 
   Exam({
     required this.id,
@@ -18,7 +18,7 @@ class Exam {
     required this.classroom,
     this.grade,
     required this.isCompleted,
-    required this.type, // добавляем
+    required this.type,
   });
 
   factory Exam.fromJson(Map<String, dynamic> json) {
@@ -31,7 +31,7 @@ class Exam {
       classroom: json['classroom'] ?? '',
       grade: json['grade'],
       isCompleted: json['isCompleted'] ?? false,
-      type: json['type'] ?? 'экзамен', // добавляем, по умолчанию 'экзамен'
+      type: json['type'] ?? 'экзамен',
     );
   }
 
@@ -45,7 +45,7 @@ class Exam {
       'classroom': classroom,
       'grade': grade,
       'isCompleted': isCompleted,
-      'type': type, // добавляем
+      'type': type,
     };
   }
 }

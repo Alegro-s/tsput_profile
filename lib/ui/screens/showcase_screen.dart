@@ -12,6 +12,7 @@ import '../../core/providers/portfolio_provider.dart';
 import '../../core/providers/student_provider.dart';
 import '../../data/portfolio_pedagogy_sections.dart';
 import '../widgets/portfolio_category_sheet.dart';
+import 'labs_screen.dart';
 
 String _loyaltyCardDigits(String seed) {
   var h = 2166136261;
@@ -99,6 +100,11 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
         onScrollLoyalty: () => _scrollTo(_loyaltyKey),
         onServices: () => _openServicesSheet(context),
         onCertificates: () => _openCertificatesSheet(context),
+        onLabs: () {
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(builder: (_) => const LabsScreen()),
+          );
+        },
       ),
     );
   }
@@ -146,6 +152,17 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                   onTap: () {
                     Navigator.pop(c);
                     _goTab(1);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(PhosphorIconsRegular.flask, color: AppConstants.blockBlack),
+                  title: const Text('Лабораторные Moodle'),
+                  subtitle: const Text('Статусы заданий'),
+                  onTap: () {
+                    Navigator.pop(c);
+                    Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(builder: (_) => const LabsScreen()),
+                    );
                   },
                 ),
                 ListTile(
@@ -1031,6 +1048,7 @@ class _ShowcaseSearchDelegate extends SearchDelegate<void> {
     required this.onScrollLoyalty,
     required this.onServices,
     required this.onCertificates,
+    required this.onLabs,
   });
 
   final VoidCallback onSchedule;
@@ -1039,6 +1057,7 @@ class _ShowcaseSearchDelegate extends SearchDelegate<void> {
   final VoidCallback onScrollLoyalty;
   final VoidCallback onServices;
   final VoidCallback onCertificates;
+  final VoidCallback onLabs;
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -1073,6 +1092,7 @@ class _ShowcaseSearchDelegate extends SearchDelegate<void> {
       _SearchHit('Портфолио', PhosphorIconsRegular.student, onOpenPortfolio),
       _SearchHit('Карта лояльности', PhosphorIconsRegular.identificationCard, onScrollLoyalty),
       _SearchHit('Сервисы', PhosphorIconsRegular.squaresFour, onServices),
+      _SearchHit('Лабораторные', PhosphorIconsRegular.flask, onLabs),
       _SearchHit('Документы', PhosphorIconsRegular.fileText, onCertificates),
     ];
 

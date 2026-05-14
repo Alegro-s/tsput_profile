@@ -8,6 +8,13 @@
 
 ## Быстрый старт на сервере
 
+Скрипты для **сервера** (скопируй в `~/tsput_profile/scripts/` после `git pull` или вместе с репозиторием):
+
+- **`scripts/server_remove_tula_travel.sh`** — остановить compose в `~/tula-travel` (если есть) и удалить каталог.
+- **`scripts/server_run_tsput_profile.sh`** — `docker compose ... up -d --build` для ТГПУ профиля и проверка `/health`.
+
+На сервере: `chmod +x scripts/server_*.sh`
+
 1. Установи Docker и Docker Compose.
 2. Склонируй репозиторий на сервер (или скопируй файлы).
 3. В корне проекта:
@@ -70,6 +77,15 @@ INTEGRATION_BASE_URL=http://72.56.244.26
 - Для продакшена лучше **HTTPS** (certbot / Caddy) и домен; тогда `INTEGRATION_BASE_URL=https://ваш-домен.ru`.
 
 ## Залить проект на сервер (ты делаешь у себя)
+
+Готовый скрипт (удаляет на сервере файлы, которых уже нет в локальной копии, **кроме** `.env` и `build/`):
+
+```bash
+chmod +x scripts/deploy_server.example.sh
+./scripts/deploy_server.example.sh USER@HOST ~/tsput_profile
+```
+
+Перед первым запуском на сервере положи свой `.env` рядом с `docker-compose.yml` (если нужны `MOODLE_*` и т.д.) — он **не** перезаписывается `rsync`.
 
 Пример с `scp` (замени `USER` и `HOST`):
 

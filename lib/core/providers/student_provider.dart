@@ -34,7 +34,7 @@ class StudentProvider with ChangeNotifier {
 
     try {
       await _repository.updateStudentInfo(updates);
-      await loadStudentData(); // Перезагружаем данные
+      await loadStudentData();
     } catch (e) {
       _error = 'Ошибка обновления данных: $e';
     } finally {

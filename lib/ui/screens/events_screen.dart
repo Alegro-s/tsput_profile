@@ -179,7 +179,6 @@ class _EventsScreenState extends State<EventsScreen>
                                   ),
                                   SizedBox(height: 16),
 
-                                  // Дата и время
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -352,7 +351,6 @@ class _EventsScreenState extends State<EventsScreen>
                                     icon: Icons.people,
                                   ),
 
-                                  // Выбор типа мероприятия
                                   SizedBox(height: 16),
                                   Container(
                                     decoration: BoxDecoration(
@@ -446,7 +444,6 @@ class _EventsScreenState extends State<EventsScreen>
                           ),
                         ),
 
-                        // Кнопка добавления
                         Container(
                           width: double.infinity,
                           height: 56,
@@ -474,16 +471,6 @@ class _EventsScreenState extends State<EventsScreen>
                                     _selectedDate != null && _selectedTime != null) {
                                   Navigator.pop(context);
 
-                                  // Создаем полную дату
-                                  final fullDate = DateTime(
-                                    _selectedDate!.year,
-                                    _selectedDate!.month,
-                                    _selectedDate!.day,
-                                    _selectedTime!.hour,
-                                    _selectedTime!.minute,
-                                  );
-
-                                  // Имитация задержки
                                   _animationController.reverse();
                                   await Future.delayed(Duration(milliseconds: 300));
 
@@ -638,7 +625,6 @@ class _EventsScreenState extends State<EventsScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Заголовок и баллы
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -700,7 +686,6 @@ class _EventsScreenState extends State<EventsScreen>
                   ),
                   SizedBox(height: 12),
 
-                  // Описание
                   Text(
                     event.description,
                     style: TextStyle(
@@ -713,7 +698,6 @@ class _EventsScreenState extends State<EventsScreen>
                   ),
                   SizedBox(height: 16),
 
-                  // Информация о мероприятии
                   _buildInfoRow(
                     icon: Icons.calendar_today,
                     text: DateFormat('dd.MM.yyyy · HH:mm').format(event.date),
@@ -728,7 +712,6 @@ class _EventsScreenState extends State<EventsScreen>
                   ),
                   SizedBox(height: 12),
 
-                  // Статус мероприятия
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1104,7 +1087,6 @@ class _EventsScreenState extends State<EventsScreen>
   }
 
   Future<void> _openCertificate(String url) async {
-    // Имитация открытия сертификата
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1261,7 +1243,6 @@ class _EventsScreenState extends State<EventsScreen>
   }
 
   void _showEditEventDialog(Event event) {
-    // Реализация редактирования мероприятия
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1277,7 +1258,6 @@ class _EventsScreenState extends State<EventsScreen>
   }
 
   void _shareEvent(Event event) {
-    // Реализация общего доступа
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1350,7 +1330,6 @@ class _EventsScreenState extends State<EventsScreen>
       return;
     }
 
-    // Показываем индикатор загрузки
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1379,16 +1358,13 @@ class _EventsScreenState extends State<EventsScreen>
     );
 
     try {
-      // Создаем PDF документ
       final pdf = pw.Document();
 
-      // Добавляем первую страницу
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           build: (pw.Context context) {
             return [
-              // Заголовок
               pw.Header(
                 level: 0,
                 child: pw.Text(
@@ -1400,7 +1376,6 @@ class _EventsScreenState extends State<EventsScreen>
                 ),
               ),
 
-              // Информация о студенте
               pw.Container(
                 padding: pw.EdgeInsets.all(12),
                 decoration: pw.BoxDecoration(
@@ -1430,7 +1405,6 @@ class _EventsScreenState extends State<EventsScreen>
 
               pw.SizedBox(height: 20),
 
-              // Статистика
               pw.Row(
                 children: [
                   pw.Expanded(
@@ -1489,7 +1463,6 @@ class _EventsScreenState extends State<EventsScreen>
 
               pw.SizedBox(height: 30),
 
-              // Таблица мероприятий
               pw.Table.fromTextArray(
                 context: context,
                 border: pw.TableBorder.all(color: PdfColors.grey300),
@@ -1519,7 +1492,6 @@ class _EventsScreenState extends State<EventsScreen>
 
               pw.SizedBox(height: 30),
 
-              // Подпись
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Container(
@@ -1544,15 +1516,13 @@ class _EventsScreenState extends State<EventsScreen>
         ),
       );
 
-      // Сохраняем PDF в файл
       final directory = await getDownloadsDirectory();
       final filePath = '${directory!.path}/Посещенные_мероприятия_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf';
       final file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 
-      Navigator.pop(context); // Закрываем индикатор загрузки
+      Navigator.pop(context);
 
-      // Показываем диалог успеха
       _showSuccessDialog(context, filePath);
 
     } catch (e) {
@@ -1663,7 +1633,6 @@ class _EventsScreenState extends State<EventsScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Показатели
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -1759,7 +1728,6 @@ class _EventsScreenState extends State<EventsScreen>
               ),
             ),
 
-            // Переключатель
             Container(
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1800,7 +1768,6 @@ class _EventsScreenState extends State<EventsScreen>
               ),
             ),
 
-            // Список мероприятий
             Expanded(
               child: provider.isLoading
                   ? Center(
@@ -1883,7 +1850,6 @@ class _EventsScreenState extends State<EventsScreen>
         ),
       ),
 
-      // Кнопка добавления мероприятия
       floatingActionButton: AnimatedScale(
         scale: provider.isLoading ? 0 : 1,
         duration: Duration(milliseconds: 300),

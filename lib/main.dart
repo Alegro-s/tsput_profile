@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:tsput_profile/ui/auth/login_screen.dart';
+import 'package:tsput_profile/ui/splash/entry_splash_screen.dart';
 import 'package:tsput_profile/ui/screens/home_screen.dart';
 import 'package:tsput_profile/ui/screens/showcase_screen.dart';
 import 'package:tsput_profile/ui/screens/profile_screen.dart';
@@ -16,6 +17,7 @@ import 'core/providers/events_provider.dart';
 import 'core/providers/grades_provider.dart';
 import 'core/providers/exams_provider.dart';
 import 'core/providers/portfolio_provider.dart';
+import 'core/providers/labs_provider.dart';
 import 'core/providers/main_nav_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -41,6 +43,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GradesProvider()),
         ChangeNotifierProvider(create: (_) => ExamsProvider()),
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
+        ChangeNotifierProvider(create: (_) => LabsProvider()),
         ChangeNotifierProvider(create: (_) => MainNavProvider()),
       ],
       child: MaterialApp(
@@ -55,7 +58,7 @@ class MyApp extends StatelessWidget {
         supportedLocales: [
           const Locale('ru', 'RU'),
         ],
-        home: AuthWrapper(),
+        home: EntrySplashScreen(child: AuthWrapper()),
       ),
     );
   }
@@ -110,6 +113,7 @@ class AuthWrapper extends StatelessWidget {
       context.read<GradesProvider>().loadGrades(),
       context.read<ExamsProvider>().loadExams(),
       context.read<PortfolioProvider>().loadPortfolio(),
+      context.read<LabsProvider>().loadLabs(),
     ]);
   }
 }

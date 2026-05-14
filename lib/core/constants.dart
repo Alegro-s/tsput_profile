@@ -23,6 +23,7 @@ class AppConstants {
   static const String gradesEndpoint = '/api/grades';
   static const String examsEndpoint = '/api/exams';
   static const String portfolioEndpoint = '/api/portfolio';
+  static const String moodleLabsEndpoint = '/api/moodle/labs';
   static const Color surfaceWhite = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF5F5F4);
   static const Color blockBlack = Color(0xFF121212);

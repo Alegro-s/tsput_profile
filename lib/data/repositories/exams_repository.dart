@@ -20,11 +20,9 @@ class ExamsRepository {
       if (exam.isCompleted) return false;
 
       try {
-        // Парсим дату из формата "dd.MM.yyyy"
         final examDate = DateFormat('dd.MM.yyyy').parse(exam.date);
         return examDate.isAfter(now) || examDate.isAtSameMomentAs(now);
       } catch (e) {
-        // Если не удалось распарсить, вернем false
         return false;
       }
     }).toList();

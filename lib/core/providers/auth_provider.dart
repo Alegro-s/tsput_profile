@@ -27,15 +27,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await AuthService.login(login, password);
+      final result = await AuthService.login(
+        login,
+        password,
+        rememberCredentials: rememberMe,
+      );
 
       if (result['success'] == true) {
         _isAuthenticated = true;
         _userName = (result['user'] as Map<String, dynamic>?)?['name'] as String?;
-
-        if (rememberMe) {
-          await SecureStorage.saveLoginData(login, password);
-        }
 
         return true;
       } else {
@@ -70,14 +70,24 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _error = null;
       final hasCredentials = await SecureStorage.hasSavedCredentials();
-      final isAuthenticated = await AuthService.isAuthenticated();
+      final hasValidToken = await AuthService.isAuthenticated();
 
-      if (hasCredentials && isAuthenticated) {
+      if (hasValidToken) {
         _isAuthenticated = true;
         return true;
       }
 
+      if (hasCredentials) {
+        final reloginOk = await AuthService.autoLogin();
+        if (reloginOk) {
+          _isAuthenticated = true;
+          return true;
+        }
+      }
+
+      _isAuthenticated = false;
       return false;
     } finally {
       _isLoading = false;

@@ -80,6 +80,10 @@ class LabItem(BaseModel):
     status: str
     teacherComment: str | None = None
     updatedAt: datetime
+    deadline: datetime | None = None
+    workType: str | None = None
+    theme: str | None = None
+    score: int | None = None
 
 
 class PartnerScanBody(BaseModel):

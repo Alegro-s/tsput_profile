@@ -4,11 +4,19 @@ import 'secure_storage.dart';
 class AuthService {
   static final ApiService _apiService = ApiService();
 
-  static Future<Map<String, dynamic>> login(String login, String password) async {
+  static Future<Map<String, dynamic>> login(
+    String login,
+    String password, {
+    bool rememberCredentials = true,
+  }) async {
     final response = await _apiService.login(login: login, password: password);
     if (response['success'] == true) {
       final token = response['token'] as String;
-      await SecureStorage.saveLoginData(login, password);
+      if (rememberCredentials) {
+        await SecureStorage.saveLoginData(login, password);
+      } else {
+        await SecureStorage.clearSavedCredentials();
+      }
       await SecureStorage.saveAuthToken(token);
       return response;
     }
@@ -35,7 +43,6 @@ class AuthService {
     return validateToken(token);
   }
 
-  // Получение сохраненных учетных данных
   static Future<Map<String, String>?> getSavedCredentials() async {
     final login = await SecureStorage.getLogin();
     final password = await SecureStorage.getPassword();
@@ -51,7 +58,11 @@ class AuthService {
     final credentials = await getSavedCredentials();
     if (credentials == null) return false;
 
-    final result = await login(credentials['login']!, credentials['password']!);
+    final result = await login(
+      credentials['login']!,
+      credentials['password']!,
+      rememberCredentials: true,
+    );
     return result['success'] == true;
   }
 }
