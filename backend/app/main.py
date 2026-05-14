@@ -101,16 +101,20 @@ def login(payload: LoginRequest) -> LoginResponse:
 @app.get("/api/student", response_model=StudentResponse)
 def student(authorization: str | None = Header(default=None)) -> StudentResponse:
     _require_auth(authorization)
+    sid = settings.student_card_id.strip() or "ST001"
+    full = settings.student_card_full_name.strip() or "Виноградов Игорь Денисович"
+    grp = settings.student_card_group.strip() or "1521621"
+    mail = settings.student_card_email.strip() or "lorm2053@gmail.com"
     return StudentResponse(
-        id="ST001",
-        fullName="Виноградов Игорь Денисович",
-        group="1521621",
+        id=sid,
+        fullName=full,
+        group=grp,
         faculty="Институт передовых информационных технологий",
         specialty="Математическое обеспечение и администрирование информационных систем",
         course=4,
         admissionDate=datetime(2022, 9, 1, tzinfo=UTC),
         graduationDate=datetime(2026, 6, 30, tzinfo=UTC),
-        email="lorm2053@gmail.com",
+        email=mail,
         phone="+7 (900) 000-00-00",
         address="г. Тула",
         additionalInfo={

@@ -33,6 +33,10 @@ services:
       MOODLE_EMAIL: ${MOODLE_EMAIL:-}
       STUDENT_FULL_NAME: ${STUDENT_FULL_NAME:-}
       MOODLE_PASSWORD: ${MOODLE_PASSWORD:-}
+      STUDENT_CARD_ID: ${STUDENT_CARD_ID:-}
+      STUDENT_CARD_FULL_NAME: ${STUDENT_CARD_FULL_NAME:-}
+      STUDENT_CARD_GROUP: ${STUDENT_CARD_GROUP:-}
+      STUDENT_CARD_EMAIL: ${STUDENT_CARD_EMAIL:-}
     depends_on:
       db:
         condition: service_healthy

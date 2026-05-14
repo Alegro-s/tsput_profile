@@ -24,5 +24,10 @@ class Settings(BaseSettings):
     student_full_name: str = ""
     moodle_password: str = ""
 
+    student_card_id: str = ""
+    student_card_full_name: str = ""
+    student_card_group: str = ""
+    student_card_email: str = ""
+
 
 settings = Settings()
